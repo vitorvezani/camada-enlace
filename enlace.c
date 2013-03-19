@@ -5,6 +5,6 @@
 //  Copyright (c) 2013 Vitor Vezani. All rights reserved.
 //
 
-int enviar(void bla){
+int enviar(int bla){
 	return 0;
 }
