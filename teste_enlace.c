@@ -28,7 +28,7 @@ int main(int argc, char const *argv[])
 
 	printf("nome do arquivo: '%s'\n num do nó: '%d'\n",nome_arq,num_no);
 
-	lerArquivo(nome_arq);
+	abrirArquivo(nome_arq);
 	
 	return 0;
 }
