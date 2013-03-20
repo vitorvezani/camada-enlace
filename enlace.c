@@ -23,9 +23,11 @@ void abrirArquivo(char * nome_arq){
 	FILE * fp;
 	fp = fopen(nome_arq, "r");
 
-    if(!fp)
+    if(!fp){
         perror("Fopen()");
-
+        exit(1);
+    }
+    
 	colocarArquivoStruct(fp);
 
 	fclose (fp);
@@ -43,7 +45,7 @@ char * pch;
 
   pch = strtok (linha,">,:");
 
-  	if (strlen(linha) != 1){
+  	if (strlen(linha) != 1){ //enter somente com o '\n'
 
   	printf("\n");	
   	  while (pch != NULL)
