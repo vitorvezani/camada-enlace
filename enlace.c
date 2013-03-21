@@ -1,14 +1,15 @@
 //
 //  enlace.c
 //
-//  Created by Vitor Vezani on 13/03/13.
+//  Created by Vitor Vezani on 19/03/13.
 //  Copyright (c) 2013 Vitor Vezani. All rights reserved.
 //
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-//#define DEBUG
+
+#define DEBUG
 #define NOS 			1
 #define ENLACES 		2
 
@@ -71,12 +72,14 @@ int troca_i;
 
 	    if (strcmp(pch,"[Nos]") == 0)
 	    {
+	    	printf("\nTabela de nós\n");
 		    lendo = NOS;
 		    i=0;
 	    }
 
 	    if (strcmp(pch,"[Enlaces]") == 0)
 	    {
+	    	printf("\nTabela de enlaces\n");
 		    lendo = ENLACES;
 		    i=0;
 	    }
@@ -87,21 +90,21 @@ int troca_i;
 	    	{
     			strcpy(ligacao.nos[i][j],pch);
     			#ifdef DEBUG
-    			printf("nos[%d][%d] '%s'\n",i,j,ligacao.nos[i][j]);
+    			printf("nos[%d][%d] '%s' | ",i,j,ligacao.nos[i][j]);
     			#endif
     			troca_i++;
-    			if(troca_i == 3)
-   				  i++;
 	    	}else if (lendo = ENLACES)
 	    	{
     			ligacao.enlaces[i][j] = atoi(pch);
     			#ifdef DEBUG
-    			printf("enlace[%d][%d] '%d'\n",i,j,ligacao.enlaces[i][j]);
+    			printf("enlace[%d][%d] '%d' | ",i,j,ligacao.enlaces[i][j]);
 	    		#endif
 	    		troca_i++;
-	    		if(troca_i == 3)
-    			  i++;
 	    	}
+			if(troca_i == 3){
+				i++;
+				printf("\n");
+			}
 	    }
 	    j++;
 	    pch = strtok (NULL, ">,:");
@@ -113,33 +116,4 @@ int troca_i;
   	free(linha);
   fclose(fp);
 
-}
-
-void retirarEspaco(char * string){
-	int j,i = 0;
-	char *stringAux = "";
-
-	if ((stringAux = (char *) malloc(sizeof(char) * strlen(string) + 1)) == NULL) {
-        printf("unable to allocate memory \n");
-        exit (4); 
-    }
-
-	while(string[i]!='\0') //aqui ele vai percorrer a string q vc digitou
-	{
-		if(string[i]!=' '){ //variável retirando-se os espaços em branco.....
-			stringAux[j]=string[i];
-			j++;
-		}
-		i++;
-	}
-		stringAux[j]='\0';
-
-	    if (stringAux[strlen(stringAux)-1]=='\n')
-	    {
-	    	stringAux[strlen(stringAux)-1]='\0';
-	    }
-
-		strcpy(string,stringAux);
-
-		free(stringAux);
 }
