@@ -13,6 +13,7 @@ int main(int argc, char const *argv[])
 {
 	int num_no; 
 	char nome_arq[20];
+	int ret_enviar;
 
 	if (argc != 3) {
         printf("Use: %s 'nome_arq_config' 'numero_nó'\n", argv[0]);
@@ -24,7 +25,13 @@ int main(int argc, char const *argv[])
 
 	printf("nome do arquivo: '%s'\n num do nó: '%d'\n",nome_arq,num_no);
 
-	abrirArquivo(nome_arq);
+	abrirArquivo(nome_arq,num_no);
+
+	ret_enviar = enviarPacote(2,"HAISHDUH!@#UIHUIH!@U#Hu23123HUISHDIU");
 	
+	if(ret_enviar == -1) printf("\nEnlace nao encontrado\n");
+	else if (ret_enviar == 1) printf("\nOK\n");
+	else printf("\nMTU Maximo : %d\n",ret_enviar);
+
 	return 0;
 }

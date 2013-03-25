@@ -19,67 +19,93 @@ void retirarEspaco(char * string);
 struct ligacoes{
     char nos[6][3][25];
     int enlaces[18][3];
+    int num_no;
 } ligacao;
 
-void abrirArquivo(char * nome_arq){
+void abrirArquivo(char * nome_arq,int num_no){
 
  	int result;
  	int lendo = 0;
  	int i,j;
 
-for (i = 0; i < 18 ; ++i)
-{
-	for (j = 0; j < 3; ++j)
+ 	ligacao.num_no = num_no;
+
+	for (i = 0; i < 18 ; ++i)
 	{
-		ligacao.enlaces[i][j] = 0;
+		for (j = 0; j < 3; ++j)
+		{
+			ligacao.enlaces[i][j] = 0;
+		}
 	}
+
+		FILE * fp;
+		fp = fopen(nome_arq, "r");
+
+	    if(!fp){
+	        perror("Fopen()");
+	        exit(1);
+	    }
+	    
+		colocarArquivoStruct(fp,lendo);
+
+		fclose (fp);
 }
 
-	FILE * fp;
-	fp = fopen(nome_arq, "r");
+int enviarPacote(int env_no,char * dados){
+	int tamanho_pacote = sizeof(dados);
+	int i,j;
 
-    if(!fp){
-        perror("Fopen()");
-        exit(1);
-    }
-    
-	colocarArquivoStruct(fp,lendo);
+	printf("Tamanho do Pacote : %d Bytes\n",tamanho_pacote);
 
-	fclose (fp);
+	for (i = 0; i < 18; ++i)
+	{
+		if (ligacao.enlaces[i][0] == ligacao.num_no)
+		{
+			if(tamanho_pacote > ligacao.enlaces[i][2])
+				return ligacao.enlaces[i][2];
+
+			return 1;
+		}
+	}
+	return -1;
 
 }
 
 void colocarArquivoStruct(FILE * fp, int lendo){
 
-size_t len= 100; // valor arbitrário
-char *linha= malloc(len);
-char * pch;
-int j,i=0;
-int troca_i;
+	size_t len= 100; // valor arbitrário
+	char *linha= malloc(len);
+	char * pch;
+	int j,i=0;
+	int troca_i;
 
-  while (getline(&linha, &len, fp) > 0)
-  {
-  j=0;
-  troca_i = 0;
+	while (getline(&linha, &len, fp) > 0)
+	{
+	j=0;
+	troca_i = 0;
 
-  pch = strtok (linha,">,:");
+	pch = strtok (linha,">,:");
 
-  	if (strlen(linha) != 1){ //enter somente com o '\n'
+		if (strlen(linha) != 1){ //enter somente com o '\n'
 
-  	  while (pch != NULL)
+		  while (pch != NULL)
 	  {
 	    retirarEspaco(pch);
 
 	    if (strcmp(pch,"[Nos]") == 0)
-	    {
+	    {	
+	    	#ifdef DEBUG
 	    	printf("\nTabela de nós\n");
+	    	#endif
 		    lendo = NOS;
 		    i=0;
 	    }
 
 	    if (strcmp(pch,"[Enlaces]") == 0)
 	    {
+	    	#ifdef DEBUG
 	    	printf("\nTabela de enlaces\n");
+	    	#endif
 		    lendo = ENLACES;
 		    i=0;
 	    }
@@ -88,32 +114,33 @@ int troca_i;
 	    {
 	    	if (lendo == NOS)
 	    	{
-    			strcpy(ligacao.nos[i][j],pch);
-    			#ifdef DEBUG
-    			printf("nos[%d][%d] '%s' | ",i,j,ligacao.nos[i][j]);
-    			#endif
-    			troca_i++;
+				strcpy(ligacao.nos[i][j],pch);
+				#ifdef DEBUG
+				printf("nos[%d][%d] '%s' | ",i,j,ligacao.nos[i][j]);
+				#endif
+				troca_i++;
 	    	}else if (lendo = ENLACES)
 	    	{
-    			ligacao.enlaces[i][j] = atoi(pch);
-    			#ifdef DEBUG
-    			printf("enlace[%d][%d] '%d' | ",i,j,ligacao.enlaces[i][j]);
+				ligacao.enlaces[i][j] = atoi(pch);
+				#ifdef DEBUG
+				printf("enlace[%d][%d] '%d' | ",i,j,ligacao.enlaces[i][j]);
 	    		#endif
 	    		troca_i++;
 	    	}
 			if(troca_i == 3){
 				i++;
+				#ifdef DEBUG
 				printf("\n");
+				#endif
 			}
 	    }
 	    j++;
 	    pch = strtok (NULL, ">,:");
 	  }
 	}
-  }
+	}
 
-  if(linha)
-  	free(linha);
-  fclose(fp);
-
+	if(linha)
+		free(linha);
+	fclose(fp);
 }

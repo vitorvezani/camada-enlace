@@ -20,9 +20,9 @@ void retirarEspaco(char * string){
         exit (4); 
     }
 
-	while(string[i]!='\0') //aqui ele vai percorrer a string q vc digitou
+	while(string[i]!='\0')
 	{
-		if(string[i]!=' '){ //variável retirando-se os espaços em branco.....
+		if(string[i]!=' '){ 
 			stringAux[j]=string[i];
 			j++;
 		}
