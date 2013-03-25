@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define DEBUG
+#define DEBBUG
 #define NOS 			1
 #define ENLACES 		2
 
@@ -52,22 +52,27 @@ void abrirArquivo(char * nome_arq,int num_no){
 }
 
 int enviarPacote(int env_no,char * dados){
-	int tamanho_pacote = sizeof(dados);
 	int i,j;
 
-	printf("Tamanho do Pacote : %d Bytes\n",tamanho_pacote);
+	printf("Tamanho do Pacote : %zu Bytes\n",sizeof dados);
 
 	for (i = 0; i < 18; ++i)
 	{
-		if (ligacao.enlaces[i][0] == ligacao.num_no)
+		if (ligacao.enlaces[i][0] == ligacao.num_no && env_no == ligacao.enlaces[i][1])
 		{
-			if(tamanho_pacote > ligacao.enlaces[i][2])
+			if(sizeof dados > ligacao.enlaces[i][2])
 				return ligacao.enlaces[i][2];
-
+			#ifdef DEBBUG
+			printf("\nDados enviados: '%s'\n\n",dados);
+			#endif
 			return 1;
 		}
 	}
 	return -1;
+
+}
+
+int receberPacotes(void){
 
 }
 
@@ -94,7 +99,7 @@ void colocarArquivoStruct(FILE * fp, int lendo){
 
 	    if (strcmp(pch,"[Nos]") == 0)
 	    {	
-	    	#ifdef DEBUG
+	    	#ifdef DEBBUG
 	    	printf("\nTabela de nós\n");
 	    	#endif
 		    lendo = NOS;
@@ -103,7 +108,7 @@ void colocarArquivoStruct(FILE * fp, int lendo){
 
 	    if (strcmp(pch,"[Enlaces]") == 0)
 	    {
-	    	#ifdef DEBUG
+	    	#ifdef DEBBUG
 	    	printf("\nTabela de enlaces\n");
 	    	#endif
 		    lendo = ENLACES;
@@ -115,21 +120,21 @@ void colocarArquivoStruct(FILE * fp, int lendo){
 	    	if (lendo == NOS)
 	    	{
 				strcpy(ligacao.nos[i][j],pch);
-				#ifdef DEBUG
+				#ifdef DEBBUG
 				printf("nos[%d][%d] '%s' | ",i,j,ligacao.nos[i][j]);
 				#endif
 				troca_i++;
 	    	}else if (lendo = ENLACES)
 	    	{
 				ligacao.enlaces[i][j] = atoi(pch);
-				#ifdef DEBUG
+				#ifdef DEBBUG
 				printf("enlace[%d][%d] '%d' | ",i,j,ligacao.enlaces[i][j]);
 	    		#endif
 	    		troca_i++;
 	    	}
 			if(troca_i == 3){
 				i++;
-				#ifdef DEBUG
+				#ifdef DEBBUG
 				printf("\n");
 				#endif
 			}

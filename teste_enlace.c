@@ -29,9 +29,11 @@ int main(int argc, char const *argv[])
 
 	ret_enviar = enviarPacote(2,"HAISHDUH!@#UIHUIH!@U#Hu23123HUISHDIU");
 	
-	if(ret_enviar == -1) printf("\nEnlace nao encontrado\n");
-	else if (ret_enviar == 1) printf("\nOK\n");
-	else printf("\nMTU Maximo : %d\n",ret_enviar);
+	printf("Return : ");
+
+	if(ret_enviar == -1) printf("Enlace nao encontrado\n");
+	else if (ret_enviar == 1) printf("OK\n");
+	else printf("MTU Maximo : %d\n",ret_enviar);
 
 	return 0;
 }
