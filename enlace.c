@@ -8,6 +8,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
 
 #define DEBBUG
 #define NOS 			1
@@ -20,13 +23,40 @@ struct ligacoes{
     char nos[6][3][25];
     int enlaces[18][3];
     int num_no;
-} ligacao;
+};
 
-void abrirArquivo(char * nome_arq,int num_no){
+struct shm_rede_enlace{
+	int tam_buffer;
+	int env_no;
+	char *buffer;
+	char *buffer_return;
+};
+
+struct data_enlace{
+	int type;
+	char *data;
+	int ecc;
+};
+
+/*
+void gerarECC(shm_rede_enlace,data_enlace){
+
+	int sum = 0;
+
+	for (int i = 0; i < shm_rede_enlace.tam_buffer; ++i)
+	{
+		sum += data_enlace.data[i];
+	}
+}
+*/
+
+void iniciarEnlace(char * nome_arq,int num_no){
 
  	int result;
  	int lendo = 0;
  	int i,j;
+ 	pthread_t = thread_enviarPacote;
+ 	struct ligacoes ligacao;
 
  	ligacao.num_no = num_no;
 
@@ -47,29 +77,64 @@ void abrirArquivo(char * nome_arq,int num_no){
 	    }
 	    
 		colocarArquivoStruct(fp,lendo);
-
 		fclose (fp);
+
+		pthread_create(&thread_enviarPacote, NULL, enviarPacote,(void *)&ligacao)
+		pthread_detach(thread_enviarPacote);
+
+/*
+		pthread_create(&thread_enviarPacote, NULL, enviarPacote, NULL)
+		pthread_detach(thread_enviarPacote);
+*/
 }
 
-int enviarPacote(int env_no,char * dados){
-	int i,j;
+void *enviarPacote(void *param){
 
-	printf("Tamanho do Pacote : %zu Bytes\n",sizeof dados);
+	struct ligacoes *ligacao = (struct ligacoes *)param;
+
+	int i,j,s;
+	int atoi_result;
+	struct sockaddr_in server;
+
+	printf("\nTamanho do Pacote : %d Bytes\n", tam_data);
 
 	for (i = 0; i < 18; ++i)
 	{
-		if (ligacao.enlaces[i][0] == ligacao.num_no && env_no == ligacao.enlaces[i][1])
+		if (ligacao->enlaces[i][0] == ligacao->num_no && env_no == ligacao->enlaces[i][1])
 		{
-			if(sizeof dados > ligacao.enlaces[i][2])
-				return ligacao.enlaces[i][2];
+			if(tam_data > ligacao->enlaces[i][2])
+				//return ligacao->enlaces[i][2];
+
+			for (i = 0; i < 6; ++i)
+			{
+				atoi_result = atoi(ligacao->nos[i][0]);
+
+				if (atoi_result == env_no)
+				{
+					if ((s = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+					perror("socket()");
+					exit(1);
+					}
+
+					server.sin_family = AF_INET; /* Tipo do endereço         */
+				    server.sin_port = htons(atoi(ligacao->nos[i][2])); /* Porta do servidor        */
+				    server.sin_addr.s_addr = inet_addr(ligacao->nos[i][1]); /* Endereço IP do servidor  */
+				}
+			}
+
+            if (sendto(s, &data, sizeof (data), 0, (struct sockaddr *) &server, sizeof (server)) < 0) {
+                perror("sendto()");
+                exit(2);
+            }
+
 			#ifdef DEBBUG
-			printf("\nDados enviados: '%s'\n\n",dados);
+			printf("\nDados enviados: '%s'\n\n",(char *)data);
 			#endif
-			return 1;
+
+			//return 1;
 		}
 	}
-	return -1;
-
+	//return -1;
 }
 
 int receberPacotes(void){
