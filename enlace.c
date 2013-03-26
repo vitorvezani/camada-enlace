@@ -154,6 +154,8 @@ void montarPacoteEnlace(struct data_enlace *datagrama_enlace){
 
 	int sum = 0;
 
+	
+
 	memcpy(datagrama_enlace->data, shm_ren->buffer, shm_ren->tam_buffer);
 
 	for (int i = 0; i < shm_rede_enlace.tam_buffer; ++i)
