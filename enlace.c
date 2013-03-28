@@ -11,13 +11,28 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <sys/time.h>		/* for gettimeofday() */
+#include <stdio.h>		/* for printf() */
+#include <unistd.h>		/* for fork() */
+#include <sys/types.h>		/* for wait(), msgget(), msgctl() */
+#include <sys/wait.h>		/* for wait() */
+#include <sys/ipc.h>		/* for msgget(), msgctl() */
+#include <sys/msg.h>		/* for msgget(), msgctl() */
+#include <errno.h>              /* errno and error codes */
+#include <signal.h>             /* for kill(), sigsuspend(), others */
+#include <sys/shm.h>            /* for shmget(), shmat(), shmctl() */
+#include <sys/sem.h>            /* for semget(), semop(), semctl() */
+#include <stdlib.h>		/* for exit() */
+#include <string.h>
+#include <pthread.h>			/* para poder manipular threads */
 
 #define DEBBUG
+
+#define TRUE 			1
+#define FALSE 			0
+
 #define NOS 			1
 #define ENLACES 		2
-
-void colocarArquivoStruct(FILE * fp, int lendo);
-void retirarEspaco(char * string);
 
 struct ligacoes{
     char nos[6][3][25];
@@ -31,6 +46,22 @@ struct data_enlace{
 	int ecc;
 };
 
+typedef struct{
+	int tam_buffer;
+	int env_no;
+	char *buffer;
+	int erro;
+}shm_rede_enlace;
+
+pthread_mutex_t exc_aces;
+shm_rede_enlace *shm_ren;
+
+void colocarArquivoStruct(FILE * fp, int lendo,struct ligacoes * ligacao);
+void retirarEspaco(char * string);
+void montarPacoteEnlace(struct data_enlace *datagrama_enlace);
+void *enviarPacote(void *param);
+void *ReceberPacote();
+
 void iniciarEnlace(char * nome_arq,int num_no){
 
 	int te, tr;
@@ -38,8 +69,8 @@ void iniciarEnlace(char * nome_arq,int num_no){
  	int lendo = 0;
  	int i,j;
 
- 	pthread_t = thread_enviarPacote;
- 	pthread_t = thread_receberPacote;
+ 	pthread_t threadEnviarPacote;
+ 	pthread_t threadReceberPacote;
 
  	struct ligacoes ligacao;
 
@@ -64,86 +95,99 @@ void iniciarEnlace(char * nome_arq,int num_no){
 		colocarArquivoStruct(fp,lendo, &ligacao);
 		fclose (fp);
 
+
+		te = pthread_create(&threadEnviarPacote, NULL, enviarPacote,(void *)&ligacao);
+		pthread_detach(threadEnviarPacote);
+		
+		if (te){
+  			printf("ERRO: impossivel criar a thread : Enviar Pacote\n");
+  			exit(-1);
+		}
+
 	/*
-		te = pthread_create(&thread_enviarPacote, NULL, enviarPacote,(void *)&ligacao)
-		pthread_detach(thread_enviarPacote);
+		tr = pthread_create(&threadReceberPacote, NULL, receberPacote, NULL)
+		pthread_detach(threadReceberPacote);
+		
+		if (te){
+  			printf("ERRO: impossivel criar a thread : Receber Pacote\n");
+  			exit(-1);
+		}
 
-		tr = pthread_create(&thread_receberPacote, NULL, receberPacote, NULL)
-		pthread_detach(thread_receberPacote);
-
-		if (te || tr) {
-      		printf("ERRO: impossivel criar as threads\n");
-      		exit(-1);
-    	}
 	*/
 }
 
 void *enviarPacote(void *param){
 
-	//mutex
-
-
 	struct ligacoes *ligacao = (struct ligacoes *)param;
 
 	struct data_enlace datagrama_enlace;
 
-	int flag = 0;
-	int i,j,s;
+	int i,j,s,flag;
 	int atoi_result;
 	struct sockaddr_in server;
 
-	printf("\nTamanho do Pacote : %d Bytes\n", tam_data);
+	while(TRUE){
+		
+		flag = 0;
+		if (shm_ren->tam_buffer == 0)
+			break;
 
-	for (i = 0; i < 18; ++i)
-	{
-		if(ligacao->enlaces[i][0] == ligacao->num_no && shm_ren->env_no == ligacao->enlaces[i][1])
+	    pthread_mutex_lock(&exc_aces);
+
+		printf("\nTamanho do Pacote : %d Bytes\n", shm_ren->tam_buffer);
+
+		for (i = 0; i < 18; ++i)
 		{
-
-			if(shm_ren->tam_buffer > ligacao->enlaces[i][2]){
-				shm_ren->errno = ligacao->enlaces[i][2];
-				flag = 2;
-				break;
-			}
-			else
+			if(ligacao->enlaces[i][0] == ligacao->num_no && shm_ren->env_no == ligacao->enlaces[i][1])
 			{
-				for(i = 0; i < 6; ++i)
+
+				if(shm_ren->tam_buffer > ligacao->enlaces[i][2]){
+					shm_ren->erro = ligacao->enlaces[i][2];
+					flag = 2;
+					break;
+				}
+				else
 				{
-					atoi_result = atoi(ligacao->nos[i][0]);
-
-					if (atoi_result == shm_ren->env_no)
+					for(i = 0; i < 6; ++i)
 					{
-						if ((s = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
-						perror("socket()");
-						exit(1);
+						atoi_result = atoi(ligacao->nos[i][0]);
+
+						if (atoi_result == shm_ren->env_no)
+						{
+							if ((s = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+							perror("socket()");
+							exit(1);
+							}
+
+							server.sin_family = AF_INET; /* Tipo do endereço         */
+						    server.sin_port = htons(atoi(ligacao->nos[i][2])); /* Porta do servidor        */
+						    server.sin_addr.s_addr = inet_addr(ligacao->nos[i][1]); /* Endereço IP do servidor  */
+						
+							montarPacoteEnlace(&datagrama_enlace);
+
+							if (sendto(s, &datagrama_enlace, sizeof(datagrama_enlace), 0, (struct sockaddr *) &server, sizeof (server)) < 0) {
+								perror("sendto()");
+								exit(2);
+							}
+
+							#ifdef DEBBUG
+							printf("\nDados enviados!\n\n");
+							#endif
+
+							flag = 1;
 						}
-
-						server.sin_family = AF_INET; /* Tipo do endereço         */
-					    server.sin_port = htons(atoi(ligacao->nos[i][2])); /* Porta do servidor        */
-					    server.sin_addr.s_addr = inet_addr(ligacao->nos[i][1]); /* Endereço IP do servidor  */
-					
-						montarPacoteEnlace(&datagrama_enlace);
-
-						if (sendto(s, &data, sizeof (data), 0, (struct sockaddr *) &server, sizeof (server)) < 0) {
-							perror("sendto()");
-							exit(2);
-						}
-
-						#ifdef DEBBUG
-						printf("\nDados enviados: '%s'\n\n",(char *)data);
-						#endif
-
-						flag = 1;
 					}
 				}
 			}
 		}
+
+		if (flag == 0)
+			shm_ren->erro = -1;
+		else if(flag == 1)
+			shm_ren->erro = 0;
+
+	    pthread_mutex_unlock(&exc_aces);
 	}
-
-	if (flag == 0)
-		shm_ren->errno = -1;
-	else if(flag == 1)
-		shm_ren->errno = 0;
-
 }
 
 void *receberPacotes(){
@@ -153,15 +197,15 @@ void *receberPacotes(){
 void montarPacoteEnlace(struct data_enlace *datagrama_enlace){
 
 	int sum = 0;
-
-	
+	int i;
 
 	memcpy(datagrama_enlace->data, shm_ren->buffer, shm_ren->tam_buffer);
 
-	for (int i = 0; i < shm_rede_enlace.tam_buffer; ++i)
+	for (i = 0; i < shm_ren->tam_buffer; ++i)
 	{
-		sum += data_enlace.data[i];
+		sum += datagrama_enlace->data[i];
 	}
+	datagrama_enlace->ecc = sum;
 }
 
 void colocarArquivoStruct(FILE * fp, int lendo,struct ligacoes *ligacao){
@@ -235,5 +279,6 @@ void colocarArquivoStruct(FILE * fp, int lendo,struct ligacoes *ligacao){
 
 	if(linha)
 		free(linha);
+
 	fclose(fp);
 }

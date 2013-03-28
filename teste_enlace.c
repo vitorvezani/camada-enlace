@@ -10,61 +10,84 @@
 #include <string.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
+#include <sys/time.h>		/* for gettimeofday() */
+#include <stdio.h>		/* for printf() */
+#include <unistd.h>		/* for fork() */
+#include <sys/types.h>		/* for wait(), msgget(), msgctl() */
+#include <sys/wait.h>		/* for wait() */
+#include <sys/ipc.h>		/* for msgget(), msgctl() */
+#include <sys/msg.h>		/* for msgget(), msgctl() */
+#include <errno.h>              /* errno and error codes */
+#include <signal.h>             /* for kill(), sigsuspend(), others */
+#include <sys/shm.h>            /* for shmget(), shmat(), shmctl() */
+#include <sys/sem.h>            /* for semget(), semop(), semctl() */
+#include <stdlib.h>		/* for exit() */
+#include <string.h>
+#include <pthread.h>			/* para poder manipular threads */
 
 #define SHM_ID 1321
+
+#define TRUE 	1
+#define FALSE	0
 
 typedef struct{
 	int tam_buffer;
 	int env_no;
 	char *buffer;
-	int errno;
+	int erro;
 }shm_rede_enlace;
 
-pthread_mutex_t produtor;
-pthread_mutex_t consumidor;
-
+pthread_mutex_t exc_aces;
 shm_rede_enlace *shm_ren;
 
-int main(int argc, char const *argv[])
-{
-	int num_no; 
-	char nome_arq[20];
+void *enviarDados();
+void *ReceberDados();
 
-	key_t key = SHM_ID;
-	int shm_id;
+void iniciarTesteEnlace(){
 
-	char *tmp_addr;
+int te,tr;
+pthread_t threadEnviarDados,threadReceberDados;
 
-	if (argc != 3) {
-        printf("Use: %s 'nome_arq_config' 'numero_nó'\n", argv[0]);
-        exit(1);
-    }
 
-    strcpy(nome_arq,argv[1]);
-	num_no = atoi(argv[2]);
+	te = pthread_create(&threadEnviarDados, NULL, enviarDados,NULL);
+	pthread_detach(threadEnviarDados);
 
-	printf("nome do arquivo: '%s'\n num do nó: '%d'\n",nome_arq,num_no);
-
-	//Cria a memoria compartilhada
-	if( (shm_id = shmget(key, sizeof(shm_rede_enlace), IPC_CREAT | 0666)) == -1 ) {
-		fprintf(stderr,"Impossivel criar a memoria compartilhada!\n");
-		exit(1);
+	if (te){
+  		printf("ERRO: impossivel criar a thread : Enviar Dados\n");
+  		exit(-1);
 	}
 
-	//Associa ao segmento de memoria compartilhada
-	if( (tmp_addr = (char *)shmat(shm_id, NULL, 0)) == (char *)-1 ) {
-		fprintf(stderr,"Impossivel associar ao segmento de memoria compartilhada!\n");
-		exit(1);
+/*
+	tr = pthread_create(&threadReceberDados, NULL, receberDados, NULL);
+	pthread_detach(threadReceberDados);
+
+	if (tr){
+  		printf("ERRO: impossivel criar a thread : Receber Dados\n");
+  		exit(-1);
+	}
+*/
+}
+
+void *enviarDados(){
+
+	while(TRUE){
+
+		pthread_mutex_lock(&exc_aces);
+
+        fpurge(stdin);
+
+        fflush(stdin);
+        printf("\nMensagem: ");
+        gets(shm_ren->buffer);
+
+		shm_ren->tam_buffer = strlen(shm_ren->buffer);
+		printf("Tamanho : \n",shm_ren->tam_buffer);
+
+	    pthread_mutex_unlock(&exc_aces);
 	}
 
-	//Estabelecimento do ponteiro
-	shm_ren = (shm_rede_enlace *)tmp_addr;
+}
 
-	//Inicializar Mutex
-	pthread_mutex_init(&produtor, NULL);
-  	pthread_mutex_init(&consumidor, NULL);
+void *receberDados(){
 
-	iniciarEnlace(nome_arq,num_no);
-
-	return 0;
 }
