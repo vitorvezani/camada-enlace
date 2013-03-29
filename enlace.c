@@ -5,15 +5,12 @@
 //  Copyright (c) 2013 Vitor Vezani. All rights reserved.
 //
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/types.h>
+#include "globais.h"
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <sys/time.h>		/* for gettimeofday() */
-#include <stdio.h>		/* for printf() */
-#include <unistd.h>		/* for fork() */
+#include <stdio.h>			/* for printf() */
+#include <unistd.h>			/* for fork() */
 #include <sys/types.h>		/* for wait(), msgget(), msgctl() */
 #include <sys/wait.h>		/* for wait() */
 #include <sys/ipc.h>		/* for msgget(), msgctl() */
@@ -46,16 +43,6 @@ struct data_enlace{
 	int ecc;
 };
 
-typedef struct{
-	int tam_buffer;
-	int env_no;
-	char *buffer;
-	int erro;
-}shm_rede_enlace;
-
-pthread_mutex_t exc_aces;
-shm_rede_enlace *shm_ren;
-
 void colocarArquivoStruct(FILE * fp, int lendo,struct ligacoes * ligacao);
 void retirarEspaco(char * string);
 void montarPacoteEnlace(struct data_enlace *datagrama_enlace);
@@ -69,20 +56,15 @@ void iniciarEnlace(char * nome_arq,int num_no){
  	int lendo = 0;
  	int i,j;
 
- 	pthread_t threadEnviarPacote;
- 	pthread_t threadReceberPacote;
+ 	pthread_t threadEnviarPacote, threadReceberPacote;
 
  	struct ligacoes ligacao;
 
  	ligacao.num_no = num_no;
 
 	for (i = 0; i < 18 ; ++i)
-	{
 		for (j = 0; j < 3; ++j)
-		{
 			ligacao.enlaces[i][j] = 0;
-		}
-	}
 
 		FILE * fp;
 		fp = fopen(nome_arq, "r");
@@ -93,8 +75,6 @@ void iniciarEnlace(char * nome_arq,int num_no){
 	    }
 	    
 		colocarArquivoStruct(fp,lendo, &ligacao);
-		fclose (fp);
-
 
 		te = pthread_create(&threadEnviarPacote, NULL, enviarPacote,(void *)&ligacao);
 		pthread_detach(threadEnviarPacote);
@@ -114,6 +94,11 @@ void iniciarEnlace(char * nome_arq,int num_no){
 		}
 
 	*/
+
+	pthread_join(threadEnviarPacote, NULL);
+	//pthread_join(threadReceberPacote, NULL);
+ 
+  	pthread_mutex_destroy(&exc_aces);
 }
 
 void *enviarPacote(void *param){
