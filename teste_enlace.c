@@ -34,6 +34,10 @@ void iniciarTesteEnlace(){
 	int te,tr;
 	pthread_t threadEnviarDados,threadReceberDados;
 
+	//inicializacao do buffer Rede->Enlace
+	strcpy(shm_ren.buffer,"");
+	shm_ren.tam_buffer == 0;
+
 	te = pthread_create(&threadEnviarDados, NULL, enviarDados,NULL);
 	pthread_detach(threadEnviarDados);
 
@@ -61,15 +65,25 @@ void iniciarTesteEnlace(){
 }
 
 void *enviarDados(){
+	
+	char charopt[128];	
 
-	while(TRUE){
+	while(1){
 
 		pthread_mutex_lock(&exc_aces);
 
-        strcpy(shm_ren->buffer,"AAAAAAAAAAA");
+		fpurge(stdin);
+    	fflush(stdin);
+    	
+        printf ("Digite o Conteudo de data: ");
+		fgets(charopt , 127 , stdin);
+		charopt[strlen(charopt)-1]='\0';
 
-		shm_ren->tam_buffer = strlen(shm_ren->buffer);
-		printf("Tamanho : %d\n",shm_ren->tam_buffer);
+        strcpy(shm_ren.buffer,charopt);
+
+		shm_ren.tam_buffer = strlen(shm_ren.buffer);
+		shm_ren.env_no = 3;
+		printf("Num nó: %d, Data: %s, Tamanho : %d\n",shm_ren.env_no,shm_ren.buffer,shm_ren.tam_buffer);
 
 	    pthread_mutex_unlock(&exc_aces);
 	}

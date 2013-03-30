@@ -23,10 +23,10 @@
 typedef struct{
 	int tam_buffer;
 	int env_no;
-	char *buffer;
+	char buffer[2500];
 	int erro;
 }shm_rede_enlace;
 
 pthread_mutex_t exc_aces;
 
-shm_rede_enlace *shm_ren;
+shm_rede_enlace shm_ren;
