@@ -29,4 +29,4 @@ typedef struct{
 
 pthread_mutex_t exc_aces;
 
-shm_rede_enlace shm_ren;
+struct shm_rede_enlace shm_ren;
