@@ -99,8 +99,6 @@ void iniciarEnlace(char * nome_arq,int num_no){
 
 	pthread_join(threadEnviarPacote, NULL);
 	//pthread_join(threadReceberPacote, NULL);
- 
-  	//pthread_mutex_destroy(&exc_aces);
 }
 
 void *enviarPacote(void *param){
@@ -115,77 +113,76 @@ void *enviarPacote(void *param){
 
 	while(1){
 		
-		flag = 0;
+		pthread_mutex_lock(&exc_aces);
 
-		if (shm_ren.tam_buffer == 0)
-			break;
+		if(shm_ren.env_no != -1){
 
-		fflush(stdin);
-		printf("estou preso\n");
-		fflush(stdin);
+			flag = 0;
 
-	    pthread_mutex_lock(&exc_aces);
+		    fflush(stdin);
+			printf("\nTamanho do Pacote : %d Bytes\n", shm_ren.tam_buffer);
 
-		fflush(stdin);
-		printf("estou livre\n");
-
-	    fflush(stdin);
-		printf("\nTamanho do Pacote : %d Bytes\n", shm_ren.tam_buffer);
-
-		for (i = 0; i < 18; ++i)
-		{
-			if(ligacao->enlaces[i][0] == ligacao->num_no && shm_ren.env_no == ligacao->enlaces[i][1])
+			for (i = 0; i < 18; ++i)
 			{
-
-				if(shm_ren.tam_buffer > ligacao->enlaces[i][2]){
-					printf("Erro de MTU\n");
-					shm_ren.erro = ligacao->enlaces[i][2];
-					flag = 2;
-					break;
-				}
-				else
+				if(ligacao->enlaces[i][0] == ligacao->num_no && shm_ren.env_no == ligacao->enlaces[i][1])
 				{
-					for(i = 0; i < 6; ++i)
+
+					printf("achou ligacao [%d]->[%d] MTU:[%d]\n",ligacao->num_no,shm_ren.env_no,ligacao->enlaces[i][2]);
+
+					if(shm_ren.tam_buffer > ligacao->enlaces[i][2]){
+						printf("Erro de MTU\n");
+						shm_ren.erro = ligacao->enlaces[i][2];
+						flag = 2;
+						break;
+					}
+					else
 					{
-						atoi_result = atoi(ligacao->nos[i][0]);
-
-						if (atoi_result == shm_ren.env_no)
+						for(i = 0; i < 6; ++i)
 						{
-							if ((s = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
-							perror("socket()");
-							exit(1);
+							atoi_result = atoi(ligacao->nos[i][0]);
+
+							if (atoi_result == shm_ren.env_no)
+							{
+								if ((s = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+								perror("socket()");
+								exit(1);
+								}
+
+								printf("ip:%s , porta: %d\n",ligacao->nos[i][1],atoi(ligacao->nos[i][2]));
+
+								server.sin_family = AF_INET; /* Tipo do endereço         */
+							    server.sin_port = htons(atoi(ligacao->nos[i][2])); /* Porta do servidor        */
+							    server.sin_addr.s_addr = inet_addr(ligacao->nos[i][1]); /* Endereço IP do servidor  */
+							
+								montarPacoteEnlace(&datagrama_enlace);
+
+								if (sendto(s, &datagrama_enlace, sizeof(datagrama_enlace), 0, (struct sockaddr *) &server, sizeof (server)) < 0) {
+									perror("sendto()");
+									exit(2);
+								}
+
+								#ifdef DEBBUG
+								printf("\nDados enviados!\n\n");
+								#endif
+
+								flag = 1;
 							}
-
-							printf("ip:%s , porta: %d\n",ligacao->nos[i][1],atoi(ligacao->nos[i][2]));
-
-							server.sin_family = AF_INET; /* Tipo do endereço         */
-						    server.sin_port = htons(atoi(ligacao->nos[i][2])); /* Porta do servidor        */
-						    server.sin_addr.s_addr = inet_addr(ligacao->nos[i][1]); /* Endereço IP do servidor  */
-						
-							montarPacoteEnlace(&datagrama_enlace);
-
-							if (sendto(s, &datagrama_enlace, sizeof(datagrama_enlace), 0, (struct sockaddr *) &server, sizeof (server)) < 0) {
-								perror("sendto()");
-								exit(2);
-							}
-
-							#ifdef DEBBUG
-							printf("\nDados enviados!\n\n");
-							#endif
-
-							flag = 1;
 						}
 					}
-				}
+				}else
+					printf("NAO achou ligacao [%d]->[%d] MTU:[%d]\n",ligacao->num_no,shm_ren.env_no,ligacao->enlaces[i][2]);
 			}
-		}
 
-		if (flag == 0)
-			shm_ren.erro = -1;
-		else if(flag == 1)
-			shm_ren.erro = 0;
+			if (flag == 0)
+				shm_ren.erro = -1;
+			else if(flag == 1)
+				shm_ren.erro = 0;
 
-	    pthread_mutex_unlock(&exc_aces);
+		    pthread_mutex_unlock(&exc_aces);
+		}else{
+			printf("nao entrou no if\n");
+			pthread_mutex_unlock(&exc_aces);
+			}
 	}
 }
 

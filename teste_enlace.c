@@ -21,8 +21,6 @@
 #include <string.h>
 #include <pthread.h>			/* para poder manipular threads */
 
-#define SHM_ID 1321
-
 #define TRUE 	1
 #define FALSE	0
 
@@ -33,10 +31,6 @@ void iniciarTesteEnlace(){
 
 	int te,tr;
 	pthread_t threadEnviarDados,threadReceberDados;
-
-	//inicializacao do buffer Rede->Enlace
-	strcpy(shm_ren.buffer,"");
-	shm_ren.tam_buffer == 0;
 
 	te = pthread_create(&threadEnviarDados, NULL, enviarDados,NULL);
 	pthread_detach(threadEnviarDados);
@@ -59,8 +53,6 @@ void iniciarTesteEnlace(){
 
 	pthread_join(threadEnviarDados, NULL);
 	//pthread_join(threadReceberDados, NULL);
- 
-  	pthread_mutex_destroy(&exc_aces);
 
 }
 
@@ -74,7 +66,7 @@ void *enviarDados(){
 
 		fpurge(stdin);
     	fflush(stdin);
-    	
+
         printf ("Digite o Conteudo de data: ");
 		fgets(charopt , 127 , stdin);
 		charopt[strlen(charopt)-1]='\0';
@@ -82,7 +74,7 @@ void *enviarDados(){
         strcpy(shm_ren.buffer,charopt);
 
 		shm_ren.tam_buffer = strlen(shm_ren.buffer);
-		shm_ren.env_no = 3;
+		shm_ren.env_no = 2;
 		printf("Num nó: %d, Data: %s, Tamanho : %d\n",shm_ren.env_no,shm_ren.buffer,shm_ren.tam_buffer);
 
 	    pthread_mutex_unlock(&exc_aces);

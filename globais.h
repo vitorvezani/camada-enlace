@@ -20,13 +20,11 @@
 #include <string.h>
 #include <pthread.h>     	/* para poder manipular threads */
 
-typedef struct{
+struct shm_rede_enlace{
 	int tam_buffer;
 	int env_no;
 	char buffer[2500];
 	int erro;
-}shm_rede_enlace;
+}shm_ren;
 
 pthread_mutex_t exc_aces;
-
-struct shm_rede_enlace shm_ren;

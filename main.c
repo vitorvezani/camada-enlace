@@ -38,12 +38,19 @@ int main(int argc, char const *argv[]){
 
 	printf("nome do arquivo: '%s'\n num do nó: '%d'\n",nome_arq,num_no);
 
+	//inicializacao do buffer Rede->Enlace
+	shm_ren.env_no = -1;
+	strcpy(shm_ren.buffer,"");
+	shm_ren.tam_buffer == 0;
+
 	//Inicializar Mutex
 	pthread_mutex_init(&exc_aces, NULL);
 
 	//Iniciar as Camadas
 	iniciarEnlace(nome_arq,num_no);
 	iniciarTesteEnlace();
+
+  	pthread_mutex_destroy(&exc_aces);
 
 	sleep(60);
 
