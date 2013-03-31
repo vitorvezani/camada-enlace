@@ -104,10 +104,12 @@ void iniciarEnlace(char * nome_arq,int num_no){
 void *enviarPacote(void *param){
 
 	struct ligacoes *ligacao = (struct ligacoes *)param;
+	int i,j,s,flag;
+
+	printf("\n");
 
 	struct data_enlace datagrama_enlace;
 
-	int i,j,s,flag;
 	int atoi_result;
 	struct sockaddr_in server;
 
@@ -124,10 +126,9 @@ void *enviarPacote(void *param){
 
 			for (i = 0; i < 18; ++i)
 			{
+
 				if(ligacao->enlaces[i][0] == ligacao->num_no && shm_ren.env_no == ligacao->enlaces[i][1])
 				{
-
-					printf("achou ligacao [%d]->[%d] MTU:[%d]\n",ligacao->num_no,shm_ren.env_no,ligacao->enlaces[i][2]);
 
 					if(shm_ren.tam_buffer > ligacao->enlaces[i][2]){
 						printf("Erro de MTU\n");
@@ -170,19 +171,22 @@ void *enviarPacote(void *param){
 						}
 					}
 				}else
-					printf("NAO achou ligacao [%d]->[%d] MTU:[%d]\n",ligacao->num_no,shm_ren.env_no,ligacao->enlaces[i][2]);
+					printf("'%d' == '%d' &&  '%d' == '%d'\n",ligacao->enlaces[i][0],ligacao->num_no,shm_ren.env_no,ligacao->enlaces[i][1]);
 			}
 
-			if (flag == 0)
+			if (flag == 0){
+				printf("nao acchou noh\n");
 				shm_ren.erro = -1;
-			else if(flag == 1)
+			}		
+			else if(flag == 1){
+				printf("enviou noh\n");
 				shm_ren.erro = 0;
-
-		    pthread_mutex_unlock(&exc_aces);
-		}else{
-			printf("nao entrou no if\n");
-			pthread_mutex_unlock(&exc_aces);
 			}
+
+			printf("shm_ren.erro : '%d'\n",shm_ren.erro );
+		    pthread_mutex_unlock(&exc_aces);
+		}else
+			pthread_mutex_unlock(&exc_aces);
 	}
 }
 

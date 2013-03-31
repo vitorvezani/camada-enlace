@@ -41,7 +41,7 @@ int main(int argc, char const *argv[]){
 	//inicializacao do buffer Rede->Enlace
 	shm_ren.env_no = -1;
 	strcpy(shm_ren.buffer,"");
-	shm_ren.tam_buffer == 0;
+	shm_ren.tam_buffer = strlen(shm_ren.buffer);
 
 	//Inicializar Mutex
 	pthread_mutex_init(&exc_aces, NULL);
