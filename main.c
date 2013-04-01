@@ -49,7 +49,7 @@ int main(int argc, char const *argv[]){
 
   	pthread_mutex_destroy(&exc_aces);
 
-	sleep(60);
+	sleep(3600);
 
 	return 0;
 }
