@@ -76,7 +76,7 @@ void iniciarEnlace(char * nome_arq,int num_no){
 	    
 		colocarArquivoStruct(fp,lendo, &ligacao);
 
-		printf("tamanho do buffer %d\n", shm_ren.tam_buffer);
+		printf("tamanho do buffer %d\n", shm_ren_env.tam_buffer);
 
 		te = pthread_create(&threadEnviarPacote, NULL, enviarPacote,(void *)&ligacao);
 		pthread_detach(threadEnviarPacote);
@@ -117,22 +117,22 @@ void *enviarPacote(void *param){
 		
 		pthread_mutex_lock(&exc_aces);
 
-		if(shm_ren.env_no != -1){
+		if(shm_ren_env.env_no != -1){
 
 			flag = 0;
 
 		    fflush(stdin);
-			printf("\nTamanho do Pacote : %d Bytes\n", shm_ren.tam_buffer);
+			printf("\nTamanho do Pacote : %d Bytes\n", shm_ren_env.tam_buffer);
 
 			for (i = 0; i < 18; ++i)
 			{
 
-				if(ligacao->enlaces[i][0] == ligacao->num_no && shm_ren.env_no == ligacao->enlaces[i][1])
+				if(ligacao->enlaces[i][0] == ligacao->num_no && shm_ren_env.env_no == ligacao->enlaces[i][1])
 				{
 
-					if(shm_ren.tam_buffer > ligacao->enlaces[i][2]){
+					if(shm_ren_env.tam_buffer > ligacao->enlaces[i][2]){
 						printf("Erro de MTU\n");
-						shm_ren.erro = ligacao->enlaces[i][2];
+						shm_ren_env.erro = ligacao->enlaces[i][2];
 						flag = 2;
 						break;
 					}
@@ -142,7 +142,7 @@ void *enviarPacote(void *param){
 						{
 							atoi_result = atoi(ligacao->nos[i][0]);
 
-							if (atoi_result == shm_ren.env_no)
+							if (atoi_result == shm_ren_env.env_no)
 							{
 								if ((s = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
 								perror("socket()");
@@ -171,19 +171,19 @@ void *enviarPacote(void *param){
 						}
 					}
 				}else
-					printf("'%d' == '%d' &&  '%d' == '%d'\n",ligacao->enlaces[i][0],ligacao->num_no,shm_ren.env_no,ligacao->enlaces[i][1]);
+					printf("'%d' == '%d' &&  '%d' == '%d'\n",ligacao->enlaces[i][0],ligacao->num_no,shm_ren_env.env_no,ligacao->enlaces[i][1]);
 			}
 
 			if (flag == 0){
 				printf("nao acchou noh\n");
-				shm_ren.erro = -1;
+				shm_ren_env.erro = -1;
 			}		
 			else if(flag == 1){
 				printf("enviou noh\n");
-				shm_ren.erro = 0;
+				shm_ren_env.erro = 0;
 			}
 
-			printf("shm_ren.erro : '%d'\n",shm_ren.erro );
+			printf("shm_ren_env.erro : '%d'\n",shm_ren_env.erro );
 		    pthread_mutex_unlock(&exc_aces);
 		}else
 			pthread_mutex_unlock(&exc_aces);
@@ -199,9 +199,9 @@ void montarPacoteEnlace(struct data_enlace *datagrama_enlace){
 	int sum = 0;
 	int i;
 
-	memcpy(datagrama_enlace->data, shm_ren.buffer, shm_ren.tam_buffer);
+	memcpy(datagrama_enlace->data, shm_ren_env.buffer, shm_ren_env.tam_buffer);
 
-	for (i = 0; i < shm_ren.tam_buffer; ++i)
+	for (i = 0; i < shm_ren_env.tam_buffer; ++i)
 	{
 		sum += datagrama_enlace->data[i];
 	}

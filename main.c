@@ -39,9 +39,9 @@ int main(int argc, char const *argv[]){
 	printf("nome do arquivo: '%s'\n num do nó: '%d'\n",nome_arq,num_no);
 
 	//inicializacao do buffer Rede->Enlace
-	shm_ren.env_no = -1;
-	strcpy(shm_ren.buffer,"");
-	shm_ren.tam_buffer = strlen(shm_ren.buffer);
+	shm_ren_env.env_no = -1;
+	strcpy(shm_ren_env.buffer,"");
+	shm_ren_env.tam_buffer = strlen(shm_ren_env.buffer);
 
 	//Inicializar Mutex
 	pthread_mutex_init(&exc_aces, NULL);

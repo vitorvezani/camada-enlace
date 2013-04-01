@@ -71,11 +71,11 @@ void *enviarDados(){
 		fgets(charopt , 127 , stdin);
 		charopt[strlen(charopt)-1]='\0';
 
-        strcpy(shm_ren.buffer,charopt);
+        strcpy(shm_ren_env.buffer,charopt);
 
-		shm_ren.tam_buffer = strlen(shm_ren.buffer);
-		shm_ren.env_no = 2;
-		printf("Num nó: %d, Data: %s, Tamanho : %d\n",shm_ren.env_no,shm_ren.buffer,shm_ren.tam_buffer);
+		shm_ren_env.tam_buffer = strlen(shm_ren_env.buffer);
+		shm_ren_env.env_no = 2;
+		printf("Num nó: %d, Data: %s, Tamanho : %d\n",shm_ren_env.env_no,shm_ren_env.buffer,shm_ren_env.tam_buffer);
 
 	    pthread_mutex_unlock(&exc_aces);
 	}

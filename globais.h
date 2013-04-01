@@ -25,6 +25,6 @@ struct shm_rede_enlace{
 	int env_no;
 	char buffer[2500];
 	int erro;
-}shm_ren;
+}shm_ren_env,shm_ren_rcv;
 
 pthread_mutex_t exc_aces;
