@@ -28,4 +28,9 @@ struct shm_rede_enlace{
 	int erro;
 }shm_ren_env,shm_ren_rcv;
 
+struct shd_file_info{
+	char nome_arq[20];
+	int num_no;
+}file_info;
+
 pthread_mutex_t exc_aces;

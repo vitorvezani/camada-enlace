@@ -23,9 +23,6 @@
 
 int main(int argc, char const *argv[]){
 
-	int num_no; 
-	char nome_arq[20];
-
 	//Testa Parametros
 	if (argc != 3){
         printf("Use: %s 'nome_arq_config' 'numero_nó'\n", argv[0]);
@@ -33,10 +30,10 @@ int main(int argc, char const *argv[]){
     }
 
 	//Copia para as Variaveis
-    strcpy(nome_arq,argv[1]);
-	num_no = atoi(argv[2]);
+    strcpy(file_info.nome_arq,argv[1]);
+	file_info.num_no = atoi(argv[2]);
 
-	printf("Main.c => Nome do Arquivo: '%s' - Numero do nó: '%d'\n",nome_arq,num_no);
+	printf("nome do arquivo: '%s'\n num do nó: '%d'\n",file_info.nome_arq,file_info.num_no);
 
 	//inicializacao do buffer Rede->Enlace
 	shm_ren_env.env_no = -1;
@@ -47,7 +44,7 @@ int main(int argc, char const *argv[]){
 	pthread_mutex_init(&exc_aces, NULL);
 
 	//Iniciar as Camadas
-	iniciarEnlace(nome_arq,num_no);
+	iniciarEnlace();
 	iniciarTesteEnlace();
 
   	pthread_mutex_destroy(&exc_aces);

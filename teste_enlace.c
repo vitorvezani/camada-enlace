@@ -51,7 +51,7 @@ void iniciarTesteEnlace(){
 	}
 	*/
 
-	pthread_join(threadEnviarDados, NULL);
+	//pthread_join(threadEnviarDados, NULL);
 	//pthread_join(threadReceberDados, NULL);
 
 }
@@ -62,8 +62,6 @@ void *enviarDados(){
 
 	while(1){
 
-
-		//Enviar Dados
 		pthread_mutex_lock(&exc_aces);
 
 		fpurge(stdin);
@@ -77,13 +75,11 @@ void *enviarDados(){
 
         shm_ren_env.type = 2;
 		shm_ren_env.tam_buffer = strlen(shm_ren_env.buffer);
-		shm_ren_env.env_no = 3;
+		shm_ren_env.env_no = 2;
 		printf("Teste_enlace.c = > Type: '%d', Num nó: '%d', Data: '%s', Tamanho : '%d'\n",shm_ren_env.type,shm_ren_env.env_no,shm_ren_env.buffer,shm_ren_env.tam_buffer);
 
 	    pthread_mutex_unlock(&exc_aces);
 
-
-	    //Esperar Resposta
 	   	pthread_mutex_lock(&exc_aces);
 
 	   	if (shm_ren_env.erro == 0)

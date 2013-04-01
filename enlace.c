@@ -34,7 +34,6 @@
 struct ligacoes{
     char nos[6][3][25];
     int enlaces[18][3];
-    int num_no;
 };
 
 struct data_enlace{
@@ -49,7 +48,7 @@ void montarPacoteEnlace(struct data_enlace *datagrama_enlace);
 void *enviarPacote(void *param);
 void *ReceberPacote();
 
-void iniciarEnlace(char * nome_arq,int num_no){
+void iniciarEnlace(){
 
 	int te, tr;
  	int result;
@@ -60,14 +59,12 @@ void iniciarEnlace(char * nome_arq,int num_no){
 
  	struct ligacoes ligacao;
 
- 	ligacao.num_no = num_no;
-
 	for (i = 0; i < 18 ; ++i)
 		for (j = 0; j < 3; ++j)
 			ligacao.enlaces[i][j] = 0;
 
 		FILE * fp;
-		fp = fopen(nome_arq, "r");
+		fp = fopen(file_info.nome_arq, "r");
 
 	    if(!fp){
 	        perror("Fopen()");
@@ -80,7 +77,7 @@ void iniciarEnlace(char * nome_arq,int num_no){
 
 		te = pthread_create(&threadEnviarPacote, NULL, enviarPacote,(void *)&ligacao);
 		pthread_detach(threadEnviarPacote);
-		
+
 		if (te){
   			printf("ERRO: impossivel criar a thread : Enviar Pacote\n");
   			exit(-1);
@@ -97,14 +94,13 @@ void iniciarEnlace(char * nome_arq,int num_no){
 
 	*/
 
-	pthread_join(threadEnviarPacote, NULL);
+	//pthread_join(threadEnviarPacote, NULL);
 	//pthread_join(threadReceberPacote, NULL);
 }
 
 void *enviarPacote(void *param){
 
 	struct ligacoes *ligacaoo = (struct ligacoes *)param;
-	int num_no = ligacaoo->num_no;
 
 	struct ligacoes ligacao = *ligacaoo;
 
@@ -130,7 +126,7 @@ void *enviarPacote(void *param){
 			for (i = 0; i < 18; ++i)
 			{
 
-				if((ligacao.enlaces[i][0] == num_no) && (shm_ren_env.env_no == ligacao.enlaces[i][1]))
+				if((ligacao.enlaces[i][0] == file_info.num_no) && (shm_ren_env.env_no == ligacao.enlaces[i][1]))
 				{
 
 					if(shm_ren_env.tam_buffer > ligacao.enlaces[i][2]){
@@ -188,6 +184,7 @@ void *enviarPacote(void *param){
 			}
 
 			printf("Enlace.c = > shm_ren_env.erro : '%d'\n",shm_ren_env.erro );
+
 		    pthread_mutex_unlock(&exc_aces);
 		}else
 			pthread_mutex_unlock(&exc_aces);
