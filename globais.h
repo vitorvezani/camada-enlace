@@ -21,6 +21,7 @@
 #include <pthread.h>     	/* para poder manipular threads */
 
 struct shm_rede_enlace{
+	int type;
 	int tam_buffer;
 	int env_no;
 	char buffer[2500];

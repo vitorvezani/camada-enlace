@@ -36,7 +36,7 @@ int main(int argc, char const *argv[]){
     strcpy(nome_arq,argv[1]);
 	num_no = atoi(argv[2]);
 
-	printf("nome do arquivo: '%s'\n num do nó: '%d'\n",nome_arq,num_no);
+	printf("Main.c => Nome do Arquivo: '%s' - Numero do nó: '%d'\n",nome_arq,num_no);
 
 	//inicializacao do buffer Rede->Enlace
 	shm_ren_env.env_no = -1;
