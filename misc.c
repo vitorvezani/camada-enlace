@@ -11,7 +11,7 @@
 
 //FUNCOES AUXILIARES DA CAMADA DE ENLACE
 
-void deblank(char* input)                                         
+void delete_espace(char* input)                                         
 {
 	int i,j;
 	size_t len = 100;

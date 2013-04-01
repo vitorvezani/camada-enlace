@@ -28,9 +28,14 @@ struct data_enlace{
 	int ecc;
 };
 
+extern struct shm_rede_enlace shm_ren_env,shm_ren_rcv;
+extern struct shd_file_info file_info;
+extern pthread_mutex_t exc_aces,exc_aces2;
+
 void colocarArquivoStruct(FILE * fp, int lendo,struct ligacoes * ligacao);
 void retirarEspaco(char * string);
 void montarPacoteEnlace(struct data_enlace *datagram);
+void montarPacoteRede(struct data_enlace *datagram);
 void *enviarPacotes(void *param);
 void *receberPacotes(void *param);
 int verificarECC(struct data_enlace *datagram);
@@ -136,7 +141,7 @@ void *enviarPacotes(void *param){
 							    node.sin_port = htons(atoi(ligacao.nos[i][2])); // Porta do servidor        
 							    node.sin_addr.s_addr = inet_addr(ligacao.nos[i][1]); // Endereço IP do servidor  
 							
-							    printf("Enlace.c = > node Configurado\n");
+							    printf("Enlace.c = > Nó Configurado\n");
 
 								montarPacoteEnlace(&datagram_enlace_env);
 
@@ -209,7 +214,7 @@ void *receberPacotes(void *param){
     if (bind(s, (struct sockaddr *) &server, sizeof (server)) < 0) {
         perror("bind()");
         exit(1);
-    } 
+    }
 
     //printf("Enlace.c (server) => Escutando IP: '%s' Porta: '%d'\n",inet_ntoa(server.sin_addr),ntohs(server.sin_port));
 
@@ -226,12 +231,31 @@ void *receberPacotes(void *param){
 	    printf("Enlace.c (server) => Type: '%d', Data: '%s', ECC: '%d'\n",datagram_enlace_rcv.type,datagram_enlace_rcv.data,datagram_enlace_rcv.ecc);
 
 	    ecc_result = verificarECC(&datagram_enlace_rcv);
+
 	    if (ecc_result)
 	    {
 	    	printf("Datagrama sem erro\n");
+	    	montarPacoteRede(&datagram_enlace_rcv);
 	    }else
 	    	printf("Datagrama corrompido\n");
    	}
+}
+
+void montarPacoteRede(struct data_enlace *datagram){
+
+	pthread_mutex_lock(&exc_aces2);
+
+		shm_ren_rcv.type = datagram->type;
+		memcpy(shm_ren_rcv.buffer, datagram->data, sizeof(datagram->data)); /* SEMPRE DA 8 BYTES */
+		shm_ren_rcv.tam_buffer = sizeof(datagram->data);
+		shm_ren_rcv.env_no = -1;
+		shm_ren_env.erro = 0;
+
+		printf("Type: '%d', Tam_buffer: '%d'Bytes, Env_no: '%d',Buffer: '%s', Erro: '%d' \n",shm_ren_rcv.type,shm_ren_rcv.tam_buffer,shm_ren_rcv.env_no,
+			shm_ren_rcv.buffer,shm_ren_rcv.erro );
+
+	pthread_mutex_unlock(&exc_aces2);
+
 }
 
 void montarPacoteEnlace(struct data_enlace *datagram){
@@ -241,7 +265,7 @@ void montarPacoteEnlace(struct data_enlace *datagram){
 
 	datagram->type = shm_ren_env.type;
 
-	if ((datagram->data = (char *) malloc(sizeof(char) * shm_ren_env.tam_buffer)) == NULL) {
+	if ((datagram->data = (char *) malloc(shm_ren_env.tam_buffer)) == NULL) {
         printf("unable to allocate memory \n");
         exit (4); 
     }
@@ -254,7 +278,7 @@ void montarPacoteEnlace(struct data_enlace *datagram){
 	}
 	datagram->ecc = sum;
 
-	printf("Enlace.c = > Type : '%d'-Data '%s'-ECC : '%d'\n",datagram->type,datagram->data,datagram->ecc );
+	printf("Enlace.c = > Type: '%d', Data: '%s', ECC: '%d'\n",datagram->type,datagram->data,datagram->ecc );
 }
 
 int verificarECC(struct data_enlace *datagram){
@@ -295,7 +319,7 @@ void colocarArquivoStruct(FILE * fp, int lendo, struct ligacoes *ligacao){
 
 		while (pch != NULL)
 	  	{
-	   		deblank(pch);
+	   		delete_espace(pch);
 
 	    if (strcmp(pch,"[Nos]") == 0)
 	    {

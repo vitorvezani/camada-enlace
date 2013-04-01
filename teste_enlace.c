@@ -10,6 +10,10 @@
 #define TRUE 	1
 #define FALSE	0
 
+extern struct shm_rede_enlace shm_ren_env,shm_ren_rcv;
+extern struct shd_file_info file_info;
+extern pthread_mutex_t exc_aces,exc_aces2;
+
 void *enviarDados();
 void *receberDados();
 
@@ -41,6 +45,8 @@ void *enviarDados(){
 
 		pthread_mutex_lock(&exc_aces);
 
+		usleep(300);
+
 		fpurge(stdin);
     	fflush(stdin);
 
@@ -53,6 +59,7 @@ void *enviarDados(){
         shm_ren_env.type = 2;
 		shm_ren_env.tam_buffer = strlen(shm_ren_env.buffer);
 		shm_ren_env.env_no = 2;
+
 		printf("Teste_enlace.c = > Type: '%d', Num nó: '%d', Data: '%s', Tamanho : '%d'\n",shm_ren_env.type,shm_ren_env.env_no,shm_ren_env.buffer,shm_ren_env.tam_buffer);
 
 	    pthread_mutex_unlock(&exc_aces);
@@ -77,11 +84,11 @@ void *enviarDados(){
 		shm_ren_env.erro = 0;
 
 	   	pthread_mutex_unlock(&exc_aces);
-	
 
 	}
 
 }
 
 void *receberDados(){
+	/*TODO*/
 }
