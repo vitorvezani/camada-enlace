@@ -6,20 +6,6 @@
 //
 
 #include "globais.h"
-#include <sys/time.h>		/* for gettimeofday() */
-#include <stdio.h>		    /* for printf() */
-#include <unistd.h>		    /* for fork() */
-#include <sys/types.h>		/* for wait(), msgget(), msgctl() */
-#include <sys/wait.h>		/* for wait() */
-#include <sys/ipc.h>		/* for msgget(), msgctl() */
-#include <sys/msg.h>		/* for msgget(), msgctl() */
-#include <errno.h>          /* errno and error codes */
-#include <signal.h>         /* for kill(), sigsuspend(), others */
-#include <sys/shm.h>        /* for shmget(), shmat(), shmctl() */
-#include <sys/sem.h>        /* for semget(), semop(), semctl() */
-#include <stdlib.h>			/* for exit() */
-#include <string.h>
-#include <pthread.h>     	/* para poder manipular threads */
 
 void *iniciarEnlace();
 void *iniciarTesteEnlace();
