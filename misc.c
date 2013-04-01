@@ -11,31 +11,25 @@
 
 //FUNCOES AUXILIARES DA CAMADA DE ENLACE
 
-void retirarEspaco(char * string){
-	int j,i = 0;
-	char *stringAux = "";
+void deblank(char* input)                                         
+{
+	int i,j;
+	size_t len = 100;
 
-	if ((stringAux = (char *) malloc(sizeof(char) * strlen(string) + 1)) == NULL) {
-        printf("unable to allocate memory \n");
-        exit (4); 
+	char *output=malloc(len);
+	strcpy(output,input);
+
+    for (i = 0, j = 0; i<strlen(input); i++,j++)          
+    {
+        if (input[i]!=' ')                           
+            output[j]=input[i];                     
+        else
+            j--;                                     
     }
+    output[j]='\0';
 
-	while(string[i]!='\0')
-	{
-		if(string[i]!=' '){ 
-			stringAux[j]=string[i];
-			j++;
-		}
-		i++;
-	}
-		stringAux[j]='\0';
+	    if (output[strlen(output)-1]=='\n')
+	    	output[strlen(output)-1]='\0';
 
-	    if (stringAux[strlen(stringAux)-1]=='\n')
-	    {
-	    	stringAux[strlen(stringAux)-1]='\0';
-	    }
-
-		strcpy(string,stringAux);
-
-		free(stringAux);
+    strcpy(input,output);
 }

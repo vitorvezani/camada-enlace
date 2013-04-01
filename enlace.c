@@ -49,7 +49,7 @@ void *enviarPacotes(void *param);
 void *receberPacotes(void *param);
 int verificarECC(struct data_enlace *datagram);
 
-void iniciarEnlace(){
+void *iniciarEnlace(){
 
 	int te, tr;
  	int result;
@@ -77,7 +77,6 @@ void iniciarEnlace(){
 		printf("\nEnlace.c = > Tamanho do buffer '%d'\n", shm_ren_env.tam_buffer);
 
 		te = pthread_create(&threadEnviarPacote, NULL, enviarPacotes,(void *)&ligacao);
-		pthread_detach(threadEnviarPacote);
 
 		if (te){
   			printf("ERRO: impossivel criar a thread : Enviar Pacote\n");
@@ -85,15 +84,14 @@ void iniciarEnlace(){
 		}
 
 		tr = pthread_create(&threadReceberPacote, NULL, receberPacotes, (void *)&ligacao);
-		pthread_detach(threadReceberPacote);
 		
 		if (tr){
   			printf("ERRO: impossivel criar a thread : Receber Pacote\n");
   			exit(-1);
 		}
 
-	//pthread_join(threadEnviarPacote, NULL);
-	//pthread_join(threadReceberPacote, NULL);
+	pthread_join(threadEnviarPacote, NULL);
+	pthread_join(threadReceberPacote, NULL);
 }
 
 void *enviarPacotes(void *param){
@@ -292,11 +290,11 @@ int verificarECC(struct data_enlace *datagram){
 
 }
 
-void colocarArquivoStruct(FILE * fp, int lendo,struct ligacoes *ligacao){
+void colocarArquivoStruct(FILE * fp, int lendo, struct ligacoes *ligacao){
 
-	size_t len= 100; // valor arbitrário
+	size_t len= 100;
 	char *linha= malloc(len);
-	char * pch;
+	char *pch;
 	int j,i=0;
 	int troca_i;
 
@@ -309,12 +307,12 @@ void colocarArquivoStruct(FILE * fp, int lendo,struct ligacoes *ligacao){
 
 		if (strlen(linha) != 1){ //enter somente com o '\n'
 
-		  while (pch != NULL)
-	  {
-	    retirarEspaco(pch);
+		while (pch != NULL)
+	  	{
+	   		deblank(pch);
 
 	    if (strcmp(pch,"[Nos]") == 0)
-	    {	
+	    {
 	    	#ifdef DEBBUG
 	    	printf("\nTabela de nós\n");
 	    	#endif
@@ -362,7 +360,7 @@ void colocarArquivoStruct(FILE * fp, int lendo,struct ligacoes *ligacao){
 	}
 
 	if(linha)
-		free(linha);
+	 free(linha);
 
 	fclose(fp);
 }

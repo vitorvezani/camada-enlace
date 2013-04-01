@@ -21,7 +21,13 @@
 #include <string.h>
 #include <pthread.h>     	/* para poder manipular threads */
 
+void *iniciarEnlace();
+void *iniciarTesteEnlace();
+
 int main(int argc, char const *argv[]){
+
+	int te,tite;
+	pthread_t threadIniciaEnlace,threadIniciaTesteEnlace;
 
 	//Testa Parametros
 	if (argc != 3){
@@ -44,12 +50,26 @@ int main(int argc, char const *argv[]){
 	pthread_mutex_init(&exc_aces, NULL);
 
 	//Iniciar as Camadas
-	iniciarEnlace();
-	iniciarTesteEnlace();
+	te = pthread_create(&threadIniciaEnlace, NULL, iniciarEnlace, NULL);
+
+	if (te){
+			printf("ERRO: impossivel criar a thread : iniciarEnlace\n");
+			exit(-1);
+	}
+
+	usleep(400);
+
+	tite = pthread_create(&threadIniciaTesteEnlace, NULL, iniciarTesteEnlace, NULL);
+
+	if (tite){
+			printf("ERRO: impossivel criar a thread : iniciarTesteEnlace\n");
+			exit(-1);
+	}
+
+	pthread_join(threadIniciaEnlace, NULL);
+	pthread_join(threadIniciaTesteEnlace, NULL);
 
   	pthread_mutex_destroy(&exc_aces);
-
-	sleep(3600);
 
 	return 0;
 }

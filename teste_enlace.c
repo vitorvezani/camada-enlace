@@ -27,13 +27,12 @@
 void *enviarDados();
 void *receberDados();
 
-void iniciarTesteEnlace(){
+void *iniciarTesteEnlace(){
 
 	int te,tr;
 	pthread_t threadEnviarDados,threadReceberDados;
 
 	te = pthread_create(&threadEnviarDados, NULL, enviarDados,NULL);
-	pthread_detach(threadEnviarDados);
 
 	if (te){
   		printf("ERRO: impossivel criar a thread : Enviar Dados\n");
@@ -41,16 +40,11 @@ void iniciarTesteEnlace(){
 	}
 
 	tr = pthread_create(&threadReceberDados, NULL, receberDados, NULL);
-	pthread_detach(threadReceberDados);
 
 	if(tr){
   		printf("ERRO: impossivel criar a thread : Receber Dados\n");
   		exit(-1);
 	}
-
-	//pthread_join(threadEnviarDados, NULL);
-	//pthread_join(threadReceberDados, NULL);
-
 }
 
 void *enviarDados(){
