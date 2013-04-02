@@ -11,7 +11,6 @@ void *iniciarEnlace(){
 
 	int te, tr;
  	int result;
- 	int lendo = 0;
  	int i,j;
 
  	pthread_t threadEnviarPacote, threadReceberPacote;
@@ -30,9 +29,7 @@ void *iniciarEnlace(){
 	        exit(1);
 	    }
 	    
-		colocarArquivoStruct(fp,lendo, &ligacao);
-
-		printf("\nEnlace.c = > Tamanho do buffer '%d'\n", shm_ren_env.tam_buffer);
+		colocarArquivoStruct(fp, &ligacao);
 
 		te = pthread_create(&threadEnviarPacote, NULL, enviarPacotes,(void *)&ligacao);
 
@@ -40,16 +37,16 @@ void *iniciarEnlace(){
   			printf("ERRO: impossivel criar a thread : Enviar Pacote\n");
   			exit(-1);
 		}
-/*
+
 		tr = pthread_create(&threadReceberPacote, NULL, receberPacotes, (void *)&ligacao);
 		
 		if (tr){
   			printf("ERRO: impossivel criar a thread : Receber Pacote\n");
   			exit(-1);
 		}
-*/
+
 	pthread_join(threadEnviarPacote, NULL);
-//	pthread_join(threadReceberPacote, NULL);
+	pthread_join(threadReceberPacote, NULL);
 }
 
 void *enviarPacotes(void *param){
@@ -212,7 +209,7 @@ void montarPacoteRede(struct data_enlace *datagram){
 
 	pthread_mutex_lock(&exc_aces2);
 
-		memcpy(&shm_ren_rcv, &datagram->data, sizeof(datagram->data)); /* SEMPRE DA 8 BYTES */
+		memcpy(&shm_ren_rcv, &datagram->data, sizeof(datagram->data));
 		shm_ren_rcv.env_no = -1;
 		shm_ren_env.erro = 0;
 
@@ -264,13 +261,14 @@ int verificarECC(struct data_enlace *datagram){
 */
 }
 
-void colocarArquivoStruct(FILE * fp, int lendo, struct ligacoes *ligacao){
+void colocarArquivoStruct(FILE * fp, struct ligacoes *ligacao){
 
 	size_t len= 100;
 	char *linha= malloc(len);
 	char *pch;
 	int j,i=0;
 	int troca_i;
+	int lendo = 0;
 
 	while (getline(&linha, &len, fp) > 0)
 	{
