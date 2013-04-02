@@ -106,7 +106,7 @@ void *enviarPacotes(void *param){
 							
 							    printf("Enlace.c = > Nó Configurado\n");
 
-								montarPacoteEnlace(datagram_enlace_env);
+								montarPacoteEnlace(&datagram_enlace_env);
 
 								printf("Enlace.c = > Pacote Montado!\n");
 
@@ -198,17 +198,18 @@ void *receberPacotes(void *param){
 	    if (ecc_result)
 	    {
 	    	printf("Datagrama sem erro\n");
-	    	montarPacoteRede(&datagram_enlace_rcv);
+	    	montarPacoteRede(datagram_enlace_rcv);
 	    }else
 	    	printf("Datagrama corrompido\n");
    	}
 }
 
-void montarPacoteRede(struct data_enlace *datagram){
+void montarPacoteRede(struct data_enlace datagram){
 
 	pthread_mutex_lock(&exc_aces2);
 
-		memcpy(&shm_ren_rcv, &datagram->data, sizeof(datagram->data));
+		memcpy(&shm_ren_rcv, &datagram.data, sizeof(datagram.data));
+		shm_ren_rcv.tam_buffer = datagram.tam_dados;
 		shm_ren_rcv.env_no = -1;
 		shm_ren_env.erro = 0;
 
@@ -219,15 +220,15 @@ void montarPacoteRede(struct data_enlace *datagram){
 
 }
 
-void montarPacoteEnlace(struct data_enlace datagram){
+void montarPacoteEnlace(struct data_enlace *datagram){
 
 	int sum = 0,aux;
 	int i;
 	void *ptr = &datagram;
 
-	datagram.tam_dados = shm_ren_env.tam_buffer;
+	datagram->tam_dados = shm_ren_env->tam_buffer;
 
-	memcpy(&datagram.data, &shm_ren_env, sizeof(shm_ren_env));
+	memcpy(&datagram->data, &shm_ren_env, sizeof(shm_ren_env));
 
 	for (i = 0; i < sizeof(datagram); ++i)
 	{
@@ -236,9 +237,9 @@ void montarPacoteEnlace(struct data_enlace datagram){
 		sum += aux ;
 	}
 
-	datagram.ecc = sum;
+	datagram->ecc = sum;
 
-	printf("Enlace.c = > Tam_dados: '%d', Tamanho Data: '%lu', ECC: '%d'\n",datagram.tam_dados, sizeof(datagram), datagram.ecc);
+	printf("Enlace.c = > Tam_dados: '%d', Tamanho Data(Frame): '%lu', ECC: '%d'\n",datagram->tam_dados, sizeof(datagram), datagram->ecc);
 }
 
 int verificarECC(struct data_enlace datagram){
