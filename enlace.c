@@ -7,8 +7,6 @@
 
 #include "headers/enlace.h"
 
-const char *const salt = "$1Hch0uyixW1o";
-
 void *iniciarEnlace(){
 
 	int te, tr;
@@ -193,11 +191,9 @@ void *receberPacotes(void *param){
 	    }
 
 	    //printf("Enlace.c (server) = > Recebida a mensagem do endereço IP %s da porta %d\n\n",inet_ntoa(client.sin_addr), ntohs(client.sin_port));
-	    printf("Enlace.c (server) = > Tamanho Data: '%lu', ECC: '%s'\n",sizeof(datagram_enlace_rcv),datagram_enlace_rcv.ecc);
+	    printf("Enlace.c (server) = > Tamanho Data: '%lu', ECC: '%d'\n",sizeof(datagram_enlace_rcv),datagram_enlace_rcv.ecc);
 
-	    ecc_result = verificarECC(&datagram_enlace_rcv);
-
-	    if (ecc_result)
+	    if (datagram_enlace_rcv.ecc == verificarECC(&datagram_enlace_rcv))
 	    {
 	    	printf("Enlace.c (server) = > Datagrama sem erro\n");
 	    	montarPacoteRede(datagram_enlace_rcv);
@@ -224,43 +220,50 @@ void montarPacoteRede(struct data_enlace datagram){
 }
 
 void montarPacoteEnlace(struct data_enlace *datagram){
-	char *pass;
+
 	int sum = 0,aux;
 	int i;
+	void *ptr = &datagram;
 
-	strcpy(datagram->ecc,"");
+	datagram->ecc = 0;
 
 	datagram->tam_dados = shm_ren_env.tam_buffer;
 
 	memcpy(&datagram->data, &shm_ren_env, sizeof(shm_ren_env));
 
-	pass = crypt((char *)datagram, salt);
+	for (i = 0; i < sizeof(datagram); ++i)
+	{
+		memcpy(&aux, &ptr, sizeof(int));
+		ptr += sizeof(int);
+		sum += aux ;
+	}
 
-	strcpy(datagram->ecc,"")
-	strcpy(datagram->ecc,pass);
+	datagram->ecc = sum;
 
-	printf("Enlace.c = > Tam_dados: '%d', Tamanho Data(Frame): '%lu', ECC: '%s'\n",datagram->tam_dados, sizeof(*datagram), datagram->ecc);
+	printf("Enlace.c = > Tam_dados: '%d', Tamanho Data(Frame): '%lu', ECC: '%d'\n",datagram->tam_dados, sizeof(*datagram), datagram->ecc);
 }
 
 int verificarECC(struct data_enlace *datagram){
-	char *pass;
+
 	int sum = 0,aux;
 	int i;
-	char ecc[256];
+	void *ptr = &datagram;
+	int ecc = datagram->ecc;
 
-	strcpy(ecc,datagram->ecc);
-	strcpy(datagram->ecc,"");
+	datagram->ecc = 0;
 
-	pass = crypt((char *)datagram, salt);
+	for (i = 0; i < sizeof(datagram); ++i)
+	{
+		memcpy(&aux, &ptr, sizeof(int));
+		ptr += sizeof(int);
+		sum += aux ;
+	}
 
-	strcpy(datagram->ecc,ecc);
+	datagram->ecc = ecc;
 
-	printf("Enlace.c (server) = > ECC:'%s', Pass: '%s'\n",datagram->ecc,pass);
+	printf("Enlace.c (server) = > ECC:'%d', Sum: '%d'\n",datagram->ecc,sum);
 
-	if(strcmp(datagram->ecc,pass) == 0)
-		return 1;
-	else
-		return 0;
+	return sum;
 
 }
 
