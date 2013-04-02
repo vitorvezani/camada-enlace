@@ -55,15 +55,16 @@ void *enviarPacotes(void *param){
 
 	struct ligacoes ligacao = *ligacaoo;
 
-	int atoi_result;
-	struct sockaddr_in node;
-	int i,j,s,flag;
+	int i,j,flag;
 
 	printf("\n");
 
 	while(1){
 
-		struct data_enlace datagram_enlace_env;
+		struct data_enlace frame_env;
+		struct sockaddr_in node;
+		int atoi_result = -1;
+		int s;
 		
 		pthread_mutex_lock(&exc_aces);
 
@@ -98,7 +99,7 @@ void *enviarPacotes(void *param){
 								exit(1);
 								}
 
-								printf("Enlace.c = > Nó: '%d', IP: '%s' , Porta: '%d'\n",shm_ren_env.env_no,ligacao.nos[i][1],atoi(ligacao.nos[i][2]));
+								printf("Enlace.c = > Achou! Nó: '%d', IP: '%s' , Porta: '%d'\n",shm_ren_env.env_no,ligacao.nos[i][1],atoi(ligacao.nos[i][2]));
 
 								node.sin_family = AF_INET; // Tipo do endereço         
 							    node.sin_port = htons(atoi(ligacao.nos[i][2])); // Porta do servidor        
@@ -106,11 +107,18 @@ void *enviarPacotes(void *param){
 							
 							    printf("Enlace.c = > Nó Configurado\n");
 
-								montarPacoteEnlace(&datagram_enlace_env);
+								montarFrame(&frame_env);
 
-								printf("Enlace.c = > Pacote Montado!\n");
+								printf("Enlace.c = > Frame Montado! (tam_dados: '%d', ecc: '%d', tam_data: '%lu', tam_frame: '%lu'\n",frame_env.tam_dados,
+									frame_env.ecc,sizeof(frame_env.data),sizeof(frame_env));
 
-								if (sendto(s, &datagram_enlace_env, sizeof(datagram_enlace_env), 0, (struct sockaddr *) &node, sizeof (node)) < 0) {
+								frame_env.ecc = checkSum(frame_env);
+
+								printf("Enlace.c = > ECC Calculado! (tam_dados: '%d', ecc: '%d', tam_data: '%lu', tam_frame: '%lu'\n",frame_env.tam_dados,
+									frame_env.ecc,sizeof(frame_env.data),sizeof(frame_env));
+
+
+								if (sendto(s, &frame_env, sizeof(frame_env), 0, (struct sockaddr *) &node, sizeof (node)) < 0) {
 									perror("sendto()");
 									exit(2);
 								}
@@ -148,9 +156,8 @@ void *receberPacotes(void *param){
 
 	struct ligacoes ligacao = *ligacaoo;
 
-	int i,atoi_result,ecc_result, s, client_address_size;
+	int i,atoi_result, s, client_address_size;
 	struct sockaddr_in client, server;
-	struct data_enlace datagram_enlace_rcv;
 
 	if ((s = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
         perror("socket()");
@@ -183,26 +190,39 @@ void *receberPacotes(void *param){
 
 	while(TRUE){
 
+		struct data_enlace frame_rcv;
+		int ecc, sum = 0;
+
 	    client_address_size = sizeof (client);
 
-	    if (recvfrom(s, &datagram_enlace_rcv, sizeof (datagram_enlace_rcv), 0, (struct sockaddr *) &client,&client_address_size) < 0) {
+	    if (recvfrom(s, &frame_rcv, sizeof (frame_rcv), 0, (struct sockaddr *) &client,&client_address_size) < 0) {
 	        perror("recvfrom()");
 	        exit(1);
 	    }
 
 	    //printf("Enlace.c (server) = > Recebida a mensagem do endereço IP %s da porta %d\n\n",inet_ntoa(client.sin_addr), ntohs(client.sin_port));
-	    printf("Enlace.c (server) = > Tamanho Data: '%lu', ECC: '%d'\n",sizeof(datagram_enlace_rcv),datagram_enlace_rcv.ecc);
 
-	    if (datagram_enlace_rcv.ecc == verificarECC(&datagram_enlace_rcv))
+	   	printf("Enlace.c = > Frame Recebido! (tam_dados: '%d', ecc: '%d', tam_data: '%lu', tam_frame: '%lu'\n",frame_rcv.tam_dados,
+			frame_rcv.ecc,sizeof(frame_rcv.data),sizeof(frame_rcv));
+
+	    ecc = frame_rcv.ecc;
+
+	    frame_rcv.ecc =0;
+
+	    sum = verificarECC(frame_rcv);
+
+	    if (ecc == sum)
 	    {
 	    	printf("Enlace.c (server) = > Datagrama sem erro\n");
-	    	montarPacoteRede(datagram_enlace_rcv);
+	    	montarDatagrama(frame_rcv);
 	    }else
-	    	printf("Enlace.c (server) = > Datagrama corrompido\n");
+	    	printf("Enlace.c (server) = > Datagrama corrompido - Pacote Descartado\n");
+
+	printf("Enlace.c (server) = > ECC:'%d', Sum: '%d'\n",ecc,sum);
    	}
 }
 
-void montarPacoteRede(struct data_enlace datagram){
+void montarDatagrama(struct data_enlace datagram){
 
 	pthread_mutex_lock(&exc_aces2);
 
@@ -217,52 +237,29 @@ void montarPacoteRede(struct data_enlace datagram){
 
 }
 
-void montarPacoteEnlace(struct data_enlace *datagram){
-
-	int sum = 0,aux;
-	int i;
-	void *ptr = &datagram;
+void montarFrame(struct data_enlace *datagram){
 
 	datagram->ecc = 0;
 
 	datagram->tam_dados = shm_ren_env.tam_buffer;
 
 	memcpy(&datagram->data, &shm_ren_env, sizeof(shm_ren_env));
-
-	for (i = 0; i < sizeof(*datagram); ++i)
-	{
-		memcpy(&aux, &ptr, sizeof(int));
-		ptr += sizeof(int);
-		sum += aux ;
-	}
-
-	datagram->ecc = sum;
-
-	printf("Enlace.c = > Tam_dados: '%d', Tamanho Data(Frame): '%lu', ECC: '%d'\n",datagram->tam_dados, sizeof(*datagram), datagram->ecc);
 }
 
-int verificarECC(struct data_enlace *datagram){
+int checkSum(struct data_enlace datagram){
 
-	int sum = 0,aux;
+	int sum = 0;
+	int aux = 0;
 	int i;
 	void *ptr = &datagram;
-	int ecc = datagram->ecc;
 
-	datagram->ecc = 0;
-
-	for (i = 0; i < sizeof(*datagram); ++i)
+	for (i = 0; i < sizeof(datagram); i += sizeof(int))
 	{
-		memcpy(&aux, &ptr, sizeof(int));
+		memcpy(&aux, ptr, sizeof(int));
 		ptr += sizeof(int);
 		sum += aux ;
 	}
-
-	datagram->ecc = ecc;
-
-	printf("Enlace.c (server) = > ECC:'%d', Sum: '%d'\n",datagram->ecc,sum);
-
 	return sum;
-
 }
 
 void colocarArquivoStruct(FILE * fp, struct ligacoes *ligacao){

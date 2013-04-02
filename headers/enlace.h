@@ -50,8 +50,8 @@ extern pthread_mutex_t exc_aces,exc_aces2;
 
 void colocarArquivoStruct(FILE * fp,struct ligacoes * ligacao);
 void retirarEspaco(char * string);
-void montarPacoteEnlace(struct data_enlace *datagram);
-void montarPacoteRede(struct data_enlace datagram);
+void montarFrame(struct data_enlace *datagram);
+void montarDatagrama(struct data_enlace datagram);
 void *enviarPacotes(void *param);
 void *receberPacotes(void *param);
-char verificarECC(struct data_enlace *datagram);
+int checkSum(struct data_enlace datagram);
