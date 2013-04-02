@@ -14,7 +14,7 @@ struct shm_rede_enlace{
 	int type;
 	int tam_buffer;
 	int env_no;
-	char buffer[2500];
+	char buffer[100];
 	int erro;
 };
 

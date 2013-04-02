@@ -40,16 +40,16 @@ void *iniciarEnlace(){
   			printf("ERRO: impossivel criar a thread : Enviar Pacote\n");
   			exit(-1);
 		}
-
+/*
 		tr = pthread_create(&threadReceberPacote, NULL, receberPacotes, (void *)&ligacao);
 		
 		if (tr){
   			printf("ERRO: impossivel criar a thread : Receber Pacote\n");
   			exit(-1);
 		}
-
+*/
 	pthread_join(threadEnviarPacote, NULL);
-	pthread_join(threadReceberPacote, NULL);
+//	pthread_join(threadReceberPacote, NULL);
 }
 
 void *enviarPacotes(void *param){
@@ -195,7 +195,7 @@ void *receberPacotes(void *param){
 	    }
 
 	    //printf("Enlace.c (server) => Recebida a mensagem do endereço IP %s da porta %d\n\n",inet_ntoa(client.sin_addr), ntohs(client.sin_port));
-	    printf("Enlace.c (server) => Type: '%d', Data: '%s', ECC: '%d'\n",datagram_enlace_rcv.type,datagram_enlace_rcv.data,datagram_enlace_rcv.ecc);
+	    printf("Enlace.c (server) => Tamanho Data: '%lu', ECC: '%d'\n",sizeof(datagram_enlace_rcv.data),datagram_enlace_rcv.ecc);
 
 	    ecc_result = verificarECC(&datagram_enlace_rcv);
 
@@ -212,9 +212,7 @@ void montarPacoteRede(struct data_enlace *datagram){
 
 	pthread_mutex_lock(&exc_aces2);
 
-		shm_ren_rcv.type = datagram->type;
-		memcpy(shm_ren_rcv.buffer, datagram->data, sizeof(datagram->data)); /* SEMPRE DA 8 BYTES */
-		shm_ren_rcv.tam_buffer = sizeof(datagram->data);
+		memcpy(&shm_ren_rcv, &datagram->data, sizeof(datagram->data)); /* SEMPRE DA 8 BYTES */
 		shm_ren_rcv.env_no = -1;
 		shm_ren_env.erro = 0;
 
@@ -227,29 +225,28 @@ void montarPacoteRede(struct data_enlace *datagram){
 
 void montarPacoteEnlace(struct data_enlace *datagram){
 
-	int sum = 0;
+	int sum = 0,aux;
 	int i;
+	void *ptr = &datagram;
 
-	datagram->type = shm_ren_env.type;
+	datagram->tam_dados = shm_ren_env.tam_buffer;
 
-	if ((datagram->data = (char *) malloc(shm_ren_env.tam_buffer)) == NULL) {
-        printf("unable to allocate memory \n");
-        exit (4); 
-    }
+	memcpy(&datagram->data, &shm_ren_env, sizeof(shm_ren_env));
 
-	memcpy(datagram->data, shm_ren_env.buffer, shm_ren_env.tam_buffer);
-
-	for (i = 0; i < sizeof(datagram->data); ++i)
+	for (i = 0; i < sizeof(datagram); ++i)
 	{
-		sum += datagram->data[i];
+		memcpy(&aux, ptr, sizeof(int));
+		ptr += sizeof(int);
+		sum += aux ;
 	}
+
 	datagram->ecc = sum;
 
-	printf("Enlace.c = > Type: '%d', Data: '%s', ECC: '%d'\n",datagram->type,datagram->data,datagram->ecc );
+	printf("Enlace.c = > Tamanho Data: '%lu', ECC: '%d'\n",sizeof(datagram->data),datagram->ecc );
 }
 
 int verificarECC(struct data_enlace *datagram){
-
+/*
 	int sum = 0;
 	int i;
 
@@ -264,7 +261,7 @@ int verificarECC(struct data_enlace *datagram){
 		return 1;
 	else
 		return 0;
-
+*/
 }
 
 void colocarArquivoStruct(FILE * fp, int lendo, struct ligacoes *ligacao){
