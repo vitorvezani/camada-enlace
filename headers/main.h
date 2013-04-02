@@ -10,7 +10,7 @@
 #include <string.h>
 #include <pthread.h>     	/* para poder manipular threads */
 
-struct shm_rede_enlace{
+struct datagrama{
 	int type;
 	int tam_buffer;
 	int env_no;
@@ -18,13 +18,13 @@ struct shm_rede_enlace{
 	int erro;
 };
 
-struct shd_file_info{
-	char nome_arq[20];
+struct file{
+	char file_name[20];
 	int num_no;
 };
 
-struct shm_rede_enlace shm_ren_env,shm_ren_rcv;
-struct shd_file_info file_info;
+struct datagrama shm_ren_env,shm_ren_rcv;
+struct file file_info;
 pthread_mutex_t exc_aces,exc_aces2;
 
 void *iniciarEnlace();

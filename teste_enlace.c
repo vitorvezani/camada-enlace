@@ -50,28 +50,31 @@ void *enviarDados(){
 		shm_ren_env.tam_buffer = strlen(shm_ren_env.buffer);
 		shm_ren_env.env_no = 2;
 
-		printf("Teste_enlace.c = > Type: '%d', Num nó: '%d', Data: '%s', Tamanho : '%d'\n",shm_ren_env.type,shm_ren_env.env_no,shm_ren_env.buffer,shm_ren_env.tam_buffer);
-
 	    pthread_mutex_unlock(&exc_aces);
 
 	   	pthread_mutex_lock(&exc_aces);
 
-	   	if (shm_ren_env.erro == 0)
+	   	if (shm_ren_env.tam_buffer != 0)
 	   	{
-	   		printf("Teste_enlace.c = > Dados Enviados\n");
-	   	}else if (shm_ren_env.erro == -1)
-	   	{
-	   		printf("Teste_enlace.c = > Não achou nó\n");
-	   	}else if (shm_ren_env.erro > 0)
-	   	{
-	   		printf("Teste_enlace.c = > MTU excedido dividir o pacote no MAX em '%d' bytes \n",shm_ren_env.erro);
-	   	}else
-	   		printf("Teste_enlace.c = > Erro desconhecido\n");
+	   		printf("Teste_enlace.c = > Type: '%d', Num nó: '%d', Data: '%s', Tamanho : '%d'\n",shm_ren_env.type,shm_ren_env.env_no,shm_ren_env.buffer,shm_ren_env.tam_buffer);
 
-	   	shm_ren_env.tam_buffer = 0;
-		shm_ren_env.env_no = 0;
-		strcpy(shm_ren_env.buffer,"");
-		shm_ren_env.erro = 0;
+	   		if (shm_ren_env.erro == 0)
+		   	{
+		   		printf("Teste_enlace.c = > Dados Enviados\n");
+		   	}else if (shm_ren_env.erro == -1)
+		   	{
+		   		printf("Teste_enlace.c = > Não achou nó\n");
+		   	}else if (shm_ren_env.erro > 0)
+		   	{
+		   		printf("Teste_enlace.c = > MTU excedido dividir o pacote no MAX em '%d' bytes \n",shm_ren_env.erro);
+		   	}else
+		   		printf("Teste_enlace.c = > Erro desconhecido\n");
+	   	
+		   	shm_ren_env.tam_buffer = 0;
+			shm_ren_env.env_no = 0;
+			strcpy(shm_ren_env.buffer,"");
+			shm_ren_env.erro = 0;
+	   	}
 
 	   	pthread_mutex_unlock(&exc_aces);
 	}

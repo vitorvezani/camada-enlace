@@ -13,7 +13,7 @@
 #define TRUE 	1
 #define FALSE	0
 
-struct shm_rede_enlace{
+struct datagrama{
 	int type;
 	int tam_buffer;
 	int env_no;
@@ -21,13 +21,13 @@ struct shm_rede_enlace{
 	int erro;
 };
 
-struct shd_file_info{
-	char nome_arq[20];
+struct file{
+	char file_name[20];
 	int num_no;
 };
 
-extern struct shm_rede_enlace shm_ren_env,shm_ren_rcv;
-extern struct shd_file_info file_info;
+extern struct datagrama shm_ren_env,shm_ren_rcv;
+extern struct file file_info;
 extern pthread_mutex_t exc_aces,exc_aces2;
 
 void *enviarDados();

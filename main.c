@@ -14,17 +14,18 @@ int main(int argc, char const *argv[]){
 
 	//Testa Parametros
 	if (argc != 3){
-        printf("Use: %s 'nome_arq_config' 'numero_nó'\n", argv[0]);
+        printf("Use: %s 'file_name.ini' 'numero_nó'\n", argv[0]);
         exit(1);
     }
 
 	//Copia para as Variaveis
-    strcpy(file_info.nome_arq,argv[1]);
+    strcpy(file_info.file_name,argv[1]);
 	file_info.num_no = atoi(argv[2]);
 
-	printf("nome do arquivo: '%s'\n num do nó: '%d'\n",file_info.nome_arq,file_info.num_no);
+	printf("nome do arquivo: '%s'\n num do nó: '%d'\n",file_info.file_name,file_info.num_no);
 
 	//inicializacao do buffer Rede->Enlace(Enviar)
+	shm_ren_env.erro = -9;
 	shm_ren_env.env_no = -1;
 	strcpy(shm_ren_env.buffer,"");
 	shm_ren_env.tam_buffer = strlen(shm_ren_env.buffer);

@@ -5,6 +5,7 @@
 //  Copyright (c) 2013 Vitor Vezani. All rights reserved.
 //
 
+#include "headers/arquivo.h"
 #include "headers/enlace.h"
 
 void *iniciarEnlace(){
@@ -22,7 +23,7 @@ void *iniciarEnlace(){
 			ligacao.enlaces[i][j] = 0;
 
 		FILE * fp;
-		fp = fopen(file_info.nome_arq, "r");
+		fp = fopen(file_info.file_name, "r");
 
 	    if(!fp){
 	        perror("Fopen()");
@@ -61,7 +62,7 @@ void *enviarPacotes(void *param){
 
 	while(1){
 
-		struct data_enlace frame_env;
+		struct frame frame_env;
 		struct sockaddr_in node;
 		int atoi_result = -1;
 		int s;
@@ -79,57 +80,53 @@ void *enviarPacotes(void *param){
 
 				if((ligacao.enlaces[i][0] == file_info.num_no) && (shm_ren_env.env_no == ligacao.enlaces[i][1]))
 				{
-
-					if(shm_ren_env.tam_buffer > ligacao.enlaces[i][2]){
-						printf("Enlace.c = > Erro de MTU\n");
-						shm_ren_env.erro = ligacao.enlaces[i][2];
-						flag = 2;
-						break;
-					}
-					else
+					for(i = 0; i < 6; ++i)
 					{
-						for(i = 0; i < 6; ++i)
+						atoi_result = atoi(ligacao.nos[i][0]);
+
+						if (atoi_result == shm_ren_env.env_no)
 						{
-							atoi_result = atoi(ligacao.nos[i][0]);
+							if ((s = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+							perror("socket()");
+							exit(1);
+							}
 
-							if (atoi_result == shm_ren_env.env_no)
-							{
-								if ((s = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
-								perror("socket()");
-								exit(1);
-								}
+							printf("Enlace.c = > Achou! Nó: '%d', IP: '%s' , Porta: '%d'\n",shm_ren_env.env_no,ligacao.nos[i][1],atoi(ligacao.nos[i][2]));
 
-								printf("Enlace.c = > Achou! Nó: '%d', IP: '%s' , Porta: '%d'\n",shm_ren_env.env_no,ligacao.nos[i][1],atoi(ligacao.nos[i][2]));
+							node.sin_family = AF_INET; // Tipo do endereço         
+						    node.sin_port = htons(atoi(ligacao.nos[i][2])); // Porta do servidor        
+						    node.sin_addr.s_addr = inet_addr(ligacao.nos[i][1]); // Endereço IP do servidor  
+						
+						    printf("Enlace.c = > Nó Configurado\n");
 
-								node.sin_family = AF_INET; // Tipo do endereço         
-							    node.sin_port = htons(atoi(ligacao.nos[i][2])); // Porta do servidor        
-							    node.sin_addr.s_addr = inet_addr(ligacao.nos[i][1]); // Endereço IP do servidor  
-							
-							    printf("Enlace.c = > Nó Configurado\n");
+							montarFrame(&frame_env);
 
-								montarFrame(&frame_env);
-
-								printf("Enlace.c = > Frame Montado! (tam_dados: '%d', ecc: '%d', tam_data: '%lu', tam_frame: '%lu'\n",frame_env.tam_dados,
-									frame_env.ecc,sizeof(frame_env.data),sizeof(frame_env));
-
-								frame_env.ecc = checkSum(frame_env);
-
-								printf("Enlace.c = > ECC Calculado! (tam_dados: '%d', ecc: '%d', tam_data: '%lu', tam_frame: '%lu'\n",frame_env.tam_dados,
-									frame_env.ecc,sizeof(frame_env.data),sizeof(frame_env));
-
-
-								if (sendto(s, &frame_env, sizeof(frame_env), 0, (struct sockaddr *) &node, sizeof (node)) < 0) {
-									perror("sendto()");
-									exit(2);
-								}
-
-								#ifdef DEBBUG
-								printf("Enlace.c = > Dados enviados!\n");
-								#endif
-
-								flag = 1;
+							if(frame_env.tam_buffer_frame > ligacao.enlaces[i][2]){
+								printf("Enlace.c = > Erro de MTU\n");
+								shm_ren_env.erro = ligacao.enlaces[i][2];
+								flag = 2;
 								break;
 							}
+
+							printf("Enlace.c = > Frame Montado! (tam_buffer_frame: '%d', ecc: '%d', tam_data: '%lu', tam_frame: '%lu'\n",frame_env.tam_buffer_frame,
+								frame_env.ecc,sizeof(frame_env.data),sizeof(frame_env));
+
+							frame_env.ecc = checkSum(frame_env);
+
+							printf("Enlace.c = > ECC Calculado! (tam_buffer_frame: '%d', ecc: '%d', tam_data: '%lu', tam_frame: '%lu'\n",frame_env.tam_buffer_frame,
+								frame_env.ecc,sizeof(frame_env.data),sizeof(frame_env));
+
+
+							if (sendto(s, &frame_env, sizeof(frame_env), 0, (struct sockaddr *) &node, sizeof (node)) < 0) {
+								perror("sendto()");
+								exit(2);
+							}
+
+							#ifdef DEBBUG
+							printf("Enlace.c = > Dados enviados!\n");
+							#endif
+
+							flag = 1;
 						}
 					}
 				}
@@ -190,7 +187,7 @@ void *receberPacotes(void *param){
 
 	while(TRUE){
 
-		struct data_enlace frame_rcv;
+		struct frame frame_rcv;
 		int ecc, sum = 0;
 
 	    client_address_size = sizeof (client);
@@ -202,14 +199,14 @@ void *receberPacotes(void *param){
 
 	    //printf("Enlace.c (server) = > Recebida a mensagem do endereço IP %s da porta %d\n\n",inet_ntoa(client.sin_addr), ntohs(client.sin_port));
 
-	   	printf("Enlace.c = > Frame Recebido! (tam_dados: '%d', ecc: '%d', tam_data: '%lu', tam_frame: '%lu'\n",frame_rcv.tam_dados,
+	   	printf("Enlace.c = > Frame Recebido! (tam_buffer_frame: '%d', ecc: '%d', tam_data: '%lu', tam_frame: '%lu'\n",frame_rcv.tam_buffer_frame,
 			frame_rcv.ecc,sizeof(frame_rcv.data),sizeof(frame_rcv));
 
 	    ecc = frame_rcv.ecc;
 
 	    frame_rcv.ecc =0;
 
-	    sum = verificarECC(frame_rcv);
+	    sum = checkSum(frame_rcv);
 
 	    if (ecc == sum)
 	    {
@@ -222,13 +219,13 @@ void *receberPacotes(void *param){
    	}
 }
 
-void montarDatagrama(struct data_enlace datagram){
+void montarDatagrama(struct frame datagram){
 
 	pthread_mutex_lock(&exc_aces2);
 
 		memcpy(&shm_ren_rcv, &datagram.data, sizeof(datagram.data));
 
-		shm_ren_rcv.tam_buffer = datagram.tam_dados;
+		shm_ren_rcv.tam_buffer = datagram.tam_buffer_frame;
 
 		shm_ren_rcv.env_no = -1;
 		shm_ren_env.erro = 0;
@@ -237,16 +234,16 @@ void montarDatagrama(struct data_enlace datagram){
 
 }
 
-void montarFrame(struct data_enlace *datagram){
+void montarFrame(struct frame *datagram){
 
 	datagram->ecc = 0;
 
-	datagram->tam_dados = shm_ren_env.tam_buffer;
+	datagram->tam_buffer_frame = shm_ren_env.tam_buffer;
 
 	memcpy(&datagram->data, &shm_ren_env, sizeof(shm_ren_env));
 }
 
-int checkSum(struct data_enlace datagram){
+int checkSum(struct frame datagram){
 
 	int sum = 0;
 	int aux = 0;
@@ -260,80 +257,4 @@ int checkSum(struct data_enlace datagram){
 		sum += aux ;
 	}
 	return sum;
-}
-
-void colocarArquivoStruct(FILE * fp, struct ligacoes *ligacao){
-
-	size_t len= 100;
-	char *linha= malloc(len);
-	char *pch;
-	int j,i=0;
-	int troca_i;
-	int lendo = 0;
-
-	while (getline(&linha, &len, fp) > 0)
-	{
-	j=0;
-	troca_i = 0;
-
-	pch = strtok (linha,">,:");
-
-		if (strlen(linha) != 1){ //enter somente com o '\n'
-
-		while (pch != NULL)
-	  	{
-	   		delete_espace(pch);
-
-	    if (strcmp(pch,"[Nos]") == 0)
-	    {
-	    	#ifdef DEBBUG
-	    	printf("\nTabela de nós\n");
-	    	#endif
-		    lendo = NOS;
-		    i=0;
-	    }
-
-	    if (strcmp(pch,"[Enlaces]") == 0)
-	    {
-	    	#ifdef DEBBUG
-	    	printf("\nTabela de enlaces\n");
-	    	#endif
-		    lendo = ENLACES;
-		    i=0;
-	    }
-
-	    if (strcmp(pch,"[Nos]") != 0 && strcmp(pch,"[Enlaces]") != 0)
-	    {
-	    	if (lendo == NOS)
-	    	{
-				strcpy(ligacao->nos[i][j],pch);
-				#ifdef DEBBUG
-				printf("nos[%d][%d] '%s' | ",i,j,ligacao->nos[i][j]);
-				#endif
-				troca_i++;
-	    	}else if (lendo = ENLACES)
-	    	{
-				ligacao->enlaces[i][j] = atoi(pch);
-				#ifdef DEBBUG
-				printf("enlace[%d][%d] '%d' | ",i,j,ligacao->enlaces[i][j]);
-	    		#endif
-	    		troca_i++;
-	    	}
-			if(troca_i == 3){
-				i++;
-				#ifdef DEBBUG
-				printf("\n");
-				#endif
-			}
-	    }
-	    j++;
-	    pch = strtok (NULL, ">,:");
-	  }
-	}
-	}
-
-	if(linha)
-	 free(linha);
-
-	fclose(fp);
 }
