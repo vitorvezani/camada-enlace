@@ -24,14 +24,13 @@ int main(int argc, char const *argv[]){
 
 	printf("nome do arquivo: '%s'\n num do nó: '%d'\n",file_info.nome_arq,file_info.num_no);
 
-	//inicializacao do buffer Rede->Enlace
+	//inicializacao do buffer Rede->Enlace(Enviar)
 	shm_ren_env.env_no = -1;
 	strcpy(shm_ren_env.buffer,"");
 	shm_ren_env.tam_buffer = strlen(shm_ren_env.buffer);
 
-	//inicializacao do buffer Enlace->Rede
-	strcpy(shm_ren_rcv.buffer,"");
-	shm_ren_rcv.tam_buffer = sizeof(shm_ren_rcv.buffer);
+	//inicializacao do buffer Rede->Enlace(Receber)
+	shm_ren_rcv.erro = -1;
 
 	//Inicializar Mutex
 	pthread_mutex_init(&exc_aces, NULL);

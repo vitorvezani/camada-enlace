@@ -179,7 +179,7 @@ void *receberPacotes(void *param){
         exit(1);
     }
 
-    //printf("Enlace.c (server) => Escutando IP: '%s' Porta: '%d'\n",inet_ntoa(server.sin_addr),ntohs(server.sin_port));
+    //printf("Enlace.c (server) = > Escutando IP: '%s' Porta: '%d'\n",inet_ntoa(server.sin_addr),ntohs(server.sin_port));
 
 	while(TRUE){
 
@@ -190,17 +190,15 @@ void *receberPacotes(void *param){
 	        exit(1);
 	    }
 
-	    //printf("Enlace.c (server) => Recebida a mensagem do endereço IP %s da porta %d\n\n",inet_ntoa(client.sin_addr), ntohs(client.sin_port));
-	    printf("Enlace.c (server) => Tamanho Data: '%lu', ECC: '%d'\n",sizeof(datagram_enlace_rcv),datagram_enlace_rcv.ecc);
+	    //printf("Enlace.c (server) = > Recebida a mensagem do endereço IP %s da porta %d\n\n",inet_ntoa(client.sin_addr), ntohs(client.sin_port));
+	    printf("Enlace.c (server) = > Tamanho Data: '%lu', ECC: '%d'\n",sizeof(datagram_enlace_rcv),datagram_enlace_rcv.ecc);
 
-	    ecc_result = verificarECC(datagram_enlace_rcv);
-
-	    if (ecc_result)
+	    if (datagram_enlace_rcv.ecc == verificarECC(&datagram_enlace_rcv))
 	    {
-	    	printf("Datagrama sem erro\n");
+	    	printf("Enlace.c (server) = > Datagrama sem erro\n");
 	    	montarPacoteRede(datagram_enlace_rcv);
 	    }else
-	    	printf("Datagrama corrompido\n");
+	    	printf("Enlace.c (server) = > Datagrama corrompido\n");
    	}
 }
 
@@ -209,12 +207,13 @@ void montarPacoteRede(struct data_enlace datagram){
 	pthread_mutex_lock(&exc_aces2);
 
 		memcpy(&shm_ren_rcv, &datagram.data, sizeof(datagram.data));
+
 		shm_ren_rcv.tam_buffer = datagram.tam_dados;
+
 		shm_ren_rcv.env_no = -1;
 		shm_ren_env.erro = 0;
 
-		printf("Type: '%d', Tam_buffer: '%d'Bytes, Env_no: '%d',Buffer: '%s', Erro: '%d' \n",shm_ren_rcv.type,shm_ren_rcv.tam_buffer,shm_ren_rcv.env_no,
-			shm_ren_rcv.buffer,shm_ren_rcv.erro );
+		printf("Montei o buffer\n");
 
 	pthread_mutex_unlock(&exc_aces2);
 
@@ -226,41 +225,45 @@ void montarPacoteEnlace(struct data_enlace *datagram){
 	int i;
 	void *ptr = &datagram;
 
+	datagram->ecc = 0;
+
 	datagram->tam_dados = shm_ren_env.tam_buffer;
 
 	memcpy(&datagram->data, &shm_ren_env, sizeof(shm_ren_env));
 
 	for (i = 0; i < sizeof(datagram); ++i)
 	{
-		memcpy(&aux, ptr, sizeof(int));
+		memcpy(&aux, &ptr, sizeof(int));
 		ptr += sizeof(int);
 		sum += aux ;
 	}
 
 	datagram->ecc = sum;
 
-	printf("Enlace.c = > Tam_dados: '%d', Tamanho Data(Frame): '%lu', ECC: '%d'\n",datagram->tam_dados, sizeof(datagram), datagram->ecc);
+	printf("Enlace.c = > Tam_dados: '%d', Tamanho Data(Frame): '%lu', ECC: '%d'\n",datagram->tam_dados, sizeof(*datagram), datagram->ecc);
 }
 
-int verificarECC(struct data_enlace datagram){
+int verificarECC(struct data_enlace *datagram){
 
 	int sum = 0,aux;
 	int i;
 	void *ptr = &datagram;
+	int ecc = datagram->ecc;
+
+	datagram->ecc = 0;
 
 	for (i = 0; i < sizeof(datagram); ++i)
 	{
-		memcpy(&aux, ptr, sizeof(int));
+		memcpy(&aux, &ptr, sizeof(int));
 		ptr += sizeof(int);
 		sum += aux ;
 	}
 
-	printf("Enlace.c (server) = >ECC:'%d', Sum: '%d'\n",datagram.ecc,sum);
+	datagram->ecc = ecc;
 
-	if (datagram.ecc == sum)
-		return 1;
-	else
-		return 0;
+	printf("Enlace.c (server) = > ECC:'%d', Sum: '%d'\n",datagram->ecc,sum);
+
+	return sum;
 
 }
 

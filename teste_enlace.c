@@ -74,11 +74,25 @@ void *enviarDados(){
 		shm_ren_env.erro = 0;
 
 	   	pthread_mutex_unlock(&exc_aces);
-
 	}
 
 }
 
 void *receberDados(){
-	/*TODO*/
+
+	while(TRUE){
+
+		pthread_mutex_lock(&exc_aces2);
+
+		if (shm_ren_rcv.erro == 0)
+		{
+			printf("Teste_enlace.c = > Type: '%d', Tam_buffer: '%d'Bytes, Env_no: '%d',Buffer: '%s', Erro: '%d' \n",shm_ren_rcv.type,shm_ren_rcv.tam_buffer,shm_ren_rcv.env_no,
+				shm_ren_rcv.buffer,shm_ren_rcv.erro );
+
+			shm_ren_rcv.erro = -1;
+
+			pthread_mutex_unlock(&exc_aces2);
+		}else
+			pthread_mutex_unlock(&exc_aces2);
+	}
 }
