@@ -226,7 +226,7 @@ void montarPacoteEnlace(struct data_enlace *datagram){
 	int i;
 	void *ptr = &datagram;
 
-	datagram->tam_dados = shm_ren_env->tam_buffer;
+	datagram->tam_dados = shm_ren_env.tam_buffer;
 
 	memcpy(&datagram->data, &shm_ren_env, sizeof(shm_ren_env));
 
