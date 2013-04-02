@@ -33,7 +33,7 @@ struct ligacoes{
 struct data_enlace{
 	int tam_dados;
 	struct shm_rede_enlace data;
-	int ecc;
+	char *ecc;
 };
 
 #define DEBBUG
