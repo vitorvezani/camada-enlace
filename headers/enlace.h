@@ -48,9 +48,9 @@ extern struct shm_rede_enlace shm_ren_env,shm_ren_rcv;
 extern struct shd_file_info file_info;
 extern pthread_mutex_t exc_aces,exc_aces2;
 
-void colocarArquivoStruct(FILE * fp, int lendo,struct ligacoes * ligacao);
+void colocarArquivoStruct(FILE * fp,struct ligacoes * ligacao);
 void retirarEspaco(char * string);
-void montarPacoteEnlace(struct data_enlace *datagram);
+void montarPacoteEnlace(struct data_enlace datagram);
 void montarPacoteRede(struct data_enlace *datagram);
 void *enviarPacotes(void *param);
 void *receberPacotes(void *param);
