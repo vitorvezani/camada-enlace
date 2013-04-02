@@ -213,8 +213,6 @@ void montarPacoteRede(struct data_enlace datagram){
 		shm_ren_rcv.env_no = -1;
 		shm_ren_env.erro = 0;
 
-		printf("Montei o buffer\n");
-
 	pthread_mutex_unlock(&exc_aces2);
 
 }
@@ -231,7 +229,7 @@ void montarPacoteEnlace(struct data_enlace *datagram){
 
 	memcpy(&datagram->data, &shm_ren_env, sizeof(shm_ren_env));
 
-	for (i = 0; i < sizeof(datagram); ++i)
+	for (i = 0; i < sizeof(*datagram); ++i)
 	{
 		memcpy(&aux, &ptr, sizeof(int));
 		ptr += sizeof(int);
@@ -252,7 +250,7 @@ int verificarECC(struct data_enlace *datagram){
 
 	datagram->ecc = 0;
 
-	for (i = 0; i < sizeof(datagram); ++i)
+	for (i = 0; i < sizeof(*datagram); ++i)
 	{
 		memcpy(&aux, &ptr, sizeof(int));
 		ptr += sizeof(int);

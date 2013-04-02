@@ -33,7 +33,7 @@ struct ligacoes{
 struct data_enlace{
 	int tam_dados;
 	struct shm_rede_enlace data;
-	int ecc;
+	char ecc;
 };
 
 #define DEBBUG
@@ -54,4 +54,4 @@ void montarPacoteEnlace(struct data_enlace *datagram);
 void montarPacoteRede(struct data_enlace datagram);
 void *enviarPacotes(void *param);
 void *receberPacotes(void *param);
-int verificarECC(struct data_enlace *datagram);
+char verificarECC(struct data_enlace *datagram);
