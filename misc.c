@@ -5,9 +5,7 @@
 //  Copyright (c) 2013 Vitor Vezani. All rights reserved.
 //
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "headers/misc.h"
 
 //FUNCOES AUXILIARES DA CAMADA DE ENLACE
 

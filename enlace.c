@@ -5,40 +5,7 @@
 //  Copyright (c) 2013 Vitor Vezani. All rights reserved.
 //
 
-#include "globais.h"
-#include <sys/socket.h>
-#include <netinet/in.h>
-
-#define DEBBUG
-
-#define TRUE 			1
-#define FALSE 			0
-
-#define NOS 			1
-#define ENLACES 		2
-
-struct ligacoes{
-    char nos[6][3][25];
-    int enlaces[18][3];
-};
-
-struct data_enlace{
-	int type;
-	char *data;
-	int ecc;
-};
-
-extern struct shm_rede_enlace shm_ren_env,shm_ren_rcv;
-extern struct shd_file_info file_info;
-extern pthread_mutex_t exc_aces,exc_aces2;
-
-void colocarArquivoStruct(FILE * fp, int lendo,struct ligacoes * ligacao);
-void retirarEspaco(char * string);
-void montarPacoteEnlace(struct data_enlace *datagram);
-void montarPacoteRede(struct data_enlace *datagram);
-void *enviarPacotes(void *param);
-void *receberPacotes(void *param);
-int verificarECC(struct data_enlace *datagram);
+#include "headers/enlace.h"
 
 void *iniciarEnlace(){
 

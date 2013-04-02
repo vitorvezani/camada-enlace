@@ -5,17 +5,7 @@
 //  Copyright (c) 2013 Vitor Vezani. All rights reserved.
 //
 
-#include "globais.h"
-
-#define TRUE 	1
-#define FALSE	0
-
-extern struct shm_rede_enlace shm_ren_env,shm_ren_rcv;
-extern struct shd_file_info file_info;
-extern pthread_mutex_t exc_aces,exc_aces2;
-
-void *enviarDados();
-void *receberDados();
+#include "headers/teste_enlace.h"
 
 void *iniciarTesteEnlace(){
 
