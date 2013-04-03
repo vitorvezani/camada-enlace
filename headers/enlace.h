@@ -28,7 +28,7 @@ struct file{
 struct frame{
 	int tam_buffer_frame;
 	struct datagrama data;
-	char ecc;
+	int ecc;
 };
 
 #define TRUE 			1
@@ -47,4 +47,4 @@ void montarFrame(struct frame *datagram);
 void montarDatagrama(struct frame datagram);
 void *enviarFrames(void *param);
 void *receberFrames(void *param);
-int checkSum(struct frame datagram);
+int checkSum(struct datagrama datagram);

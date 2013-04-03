@@ -63,7 +63,7 @@ void *enviarFrames(void *param){
 	while(1){
 
 		struct frame frame_env;
-		struct sockaddr_in node;
+		struct sockaddr_in to;
 		int atoi_result = -1;
 		int s;
 		
@@ -93,9 +93,9 @@ void *enviarFrames(void *param){
 
 							printf("Enlace.c = > Achou! Nó: '%d', IP: '%s' , Porta: '%d'\n",shm_env.env_no,ligacao.nos[i][1],atoi(ligacao.nos[i][2]));
 
-							node.sin_family = AF_INET; // Tipo do endereço         
-						    node.sin_port = htons(atoi(ligacao.nos[i][2])); // Porta do servidor        
-						    node.sin_addr.s_addr = inet_addr(ligacao.nos[i][1]); // Endereço IP do servidor  
+							to.sin_family = AF_INET; // Tipo do endereço         
+						    to.sin_port = htons(atoi(ligacao.nos[i][2])); // Porta do servidor        
+						    to.sin_addr.s_addr = inet_addr(ligacao.nos[i][1]); // Endereço IP do servidor  
 						
 						    printf("Enlace.c = > Nó Configurado\n");
 
@@ -111,13 +111,13 @@ void *enviarFrames(void *param){
 							printf("Enlace.c = > Frame Montado! (tam_buffer_frame: '%d', ecc: '%d', tam_data: '%lu', tam_frame: '%lu'\n",frame_env.tam_buffer_frame,
 								frame_env.ecc,sizeof(frame_env.data),sizeof(frame_env));
 
-							frame_env.ecc = checkSum(frame_env);
+							frame_env.ecc = checkSum(shm_env);
 
 							printf("Enlace.c = > ECC Calculado! (tam_buffer_frame: '%d', ecc: '%d', tam_data: '%lu', tam_frame: '%lu'\n",frame_env.tam_buffer_frame,
 								frame_env.ecc,sizeof(frame_env.data),sizeof(frame_env));
 
 
-							if (sendto(s, &frame_env, sizeof(frame_env), 0, (struct sockaddr *) &node, sizeof (node)) < 0) {
+							if (sendto(s, &frame_env, sizeof(frame_env), 0, (struct sockaddr *) &to, sizeof (to)) < 0) {
 								perror("sendto()");
 								exit(2);
 							}
@@ -153,8 +153,8 @@ void *receberFrames(void *param){
 
 	struct ligacoes ligacao = *ligacaoo;
 
-	int i,atoi_result, s, client_address_size;
-	struct sockaddr_in client, server;
+	int i,atoi_result, s, from_address_size;
+	struct sockaddr_in from, server;
 
 	if ((s = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
         perror("socket()");
@@ -188,34 +188,35 @@ void *receberFrames(void *param){
 	while(TRUE){
 
 		struct frame frame_rcv;
-		int ecc, sum = 0;
+		int sum = 0;
 
-	    client_address_size = sizeof (client);
+	    from_address_size = sizeof (from);
 
-	    if (recvfrom(s, &frame_rcv, sizeof (frame_rcv), 0, (struct sockaddr *) &client,&client_address_size) < 0) {
+	    if (recvfrom(s, &frame_rcv, sizeof (frame_rcv), 0, (struct sockaddr *) &from,&from_address_size) < 0) {
 	        perror("recvfrom()");
 	        exit(1);
 	    }
 
-	    //printf("Enlace.c (server) = > Recebida a mensagem do endereço IP %s da porta %d\n\n",inet_ntoa(client.sin_addr), ntohs(client.sin_port));
+	    //printf("Enlace.c (server) = > Recebida a mensagem do endereço IP %s da porta %d\n\n",inet_ntoa(from.sin_addr), ntohs(from.sin_port));
 
 	   	printf("Enlace.c (server)= > Frame Recebido! (tam_buffer_frame: '%d', ecc: '%d', tam_data: '%lu', tam_frame: '%lu'\n",frame_rcv.tam_buffer_frame,
 			frame_rcv.ecc,sizeof(frame_rcv.data),sizeof(frame_rcv));
 
-	    ecc = frame_rcv.ecc;
+	   	montarDatagrama(frame_rcv);
 
-	    frame_rcv.ecc =0;
+	    sum = checkSum(shm_rcv);
 
-	    sum = checkSum(frame_rcv);
+	    shm_rcv.env_no = -1;
+		shm_rcv.erro = 0;
 
-	    if (ecc == sum)
-	    {
+	    if (frame_rcv.ecc == sum)
 	    	printf("Enlace.c (server) = > Datagrama sem erro\n");
-	    	montarDatagrama(frame_rcv);
-	    }else
+	  	else
 	    	printf("Enlace.c (server) = > Datagrama corrompido - Pacote Descartado\n");
 
-	printf("Enlace.c (server) = > ECC:'%d', Sum: '%d'\n",ecc,sum);
+	printf("Enlace.c (server) = > ECC:'%d', Sum: '%d'\n",frame_rcv.ecc,sum);
+	
+	pthread_mutex_unlock(&exc_aces2);
    	}
 }
 
@@ -224,13 +225,6 @@ void montarDatagrama(struct frame datagram){
 	pthread_mutex_lock(&exc_aces2);
 
 		memcpy(&shm_rcv, &datagram.data, sizeof(datagram.data));
-
-		shm_rcv.tam_buffer = datagram.tam_buffer_frame;
-
-		shm_rcv.env_no = -1;
-		shm_rcv.erro = 0;
-
-	pthread_mutex_unlock(&exc_aces2);
 
 }
 
@@ -243,7 +237,7 @@ void montarFrame(struct frame *datagram){
 	memcpy(&datagram->data, &shm_env, sizeof(shm_env));
 }
 
-int checkSum(struct frame datagram){
+int checkSum(struct datagrama datagram){
 
 	int sum = 0;
 	int aux = 0;
