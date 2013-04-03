@@ -14,7 +14,7 @@ void *iniciarEnlace(){
  	int result;
  	int i,j;
 
- 	pthread_t threadEnviarPacote, threadReceberPacote;
+ 	pthread_t threadEnviarFrames, threadReceberFrames;
 
  	struct ligacoes ligacao;
 
@@ -32,25 +32,25 @@ void *iniciarEnlace(){
 	    
 		colocarArquivoStruct(fp, &ligacao);
 
-		te = pthread_create(&threadEnviarPacote, NULL, enviarPacotes,(void *)&ligacao);
+		te = pthread_create(&threadEnviarFrames, NULL, enviarFrames,(void *)&ligacao);
 
 		if (te){
   			printf("ERRO: impossivel criar a thread : Enviar Pacote\n");
   			exit(-1);
 		}
 
-		tr = pthread_create(&threadReceberPacote, NULL, receberPacotes, (void *)&ligacao);
+		tr = pthread_create(&threadReceberFrames, NULL, receberFrames, (void *)&ligacao);
 		
 		if (tr){
   			printf("ERRO: impossivel criar a thread : Receber Pacote\n");
   			exit(-1);
 		}
 
-	pthread_join(threadEnviarPacote, NULL);
-	pthread_join(threadReceberPacote, NULL);
+	pthread_join(threadEnviarFrames, NULL);
+	pthread_join(threadReceberFrames, NULL);
 }
 
-void *enviarPacotes(void *param){
+void *enviarFrames(void *param){
 
 	struct ligacoes *ligacaoo = (struct ligacoes *)param;
 
@@ -69,7 +69,7 @@ void *enviarPacotes(void *param){
 		
 		pthread_mutex_lock(&exc_aces);
 
-		if(shm_ren_env.env_no != -1 && shm_ren_env.tam_buffer != 0){
+		if(shm_env.env_no != -1 && shm_env.tam_buffer != 0){
 
 			flag = 0;
 
@@ -78,20 +78,20 @@ void *enviarPacotes(void *param){
 			for (i = 0; i < 18; ++i)
 			{
 
-				if((ligacao.enlaces[i][0] == file_info.num_no) && (shm_ren_env.env_no == ligacao.enlaces[i][1]))
+				if((ligacao.enlaces[i][0] == file_info.num_no) && (shm_env.env_no == ligacao.enlaces[i][1]))
 				{
 					for(i = 0; i < 6; ++i)
 					{
 						atoi_result = atoi(ligacao.nos[i][0]);
 
-						if (atoi_result == shm_ren_env.env_no)
+						if (atoi_result == shm_env.env_no)
 						{
 							if ((s = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
 							perror("socket()");
 							exit(1);
 							}
 
-							printf("Enlace.c = > Achou! Nó: '%d', IP: '%s' , Porta: '%d'\n",shm_ren_env.env_no,ligacao.nos[i][1],atoi(ligacao.nos[i][2]));
+							printf("Enlace.c = > Achou! Nó: '%d', IP: '%s' , Porta: '%d'\n",shm_env.env_no,ligacao.nos[i][1],atoi(ligacao.nos[i][2]));
 
 							node.sin_family = AF_INET; // Tipo do endereço         
 						    node.sin_port = htons(atoi(ligacao.nos[i][2])); // Porta do servidor        
@@ -103,7 +103,7 @@ void *enviarPacotes(void *param){
 
 							if(frame_env.tam_buffer_frame > ligacao.enlaces[i][2]){
 								printf("Enlace.c = > Erro de MTU\n");
-								shm_ren_env.erro = ligacao.enlaces[i][2];
+								shm_env.erro = ligacao.enlaces[i][2];
 								flag = 2;
 								break;
 							}
@@ -133,13 +133,13 @@ void *enviarPacotes(void *param){
 			}
 
 			if (flag == 0){
-				shm_ren_env.erro = -1;
+				shm_env.erro = -1;
 			}		
 			else if(flag == 1){
-				shm_ren_env.erro = 0;
+				shm_env.erro = 0;
 			}
 
-			printf("Enlace.c = > shm_ren_env.erro : '%d'\n\n",shm_ren_env.erro );
+			printf("Enlace.c = > shm_env.erro : '%d'\n\n",shm_env.erro );
 
 		    pthread_mutex_unlock(&exc_aces);
 		}else
@@ -147,7 +147,7 @@ void *enviarPacotes(void *param){
 	}
 }
 
-void *receberPacotes(void *param){
+void *receberFrames(void *param){
 
 	struct ligacoes *ligacaoo = (struct ligacoes *)param;
 
@@ -199,7 +199,7 @@ void *receberPacotes(void *param){
 
 	    //printf("Enlace.c (server) = > Recebida a mensagem do endereço IP %s da porta %d\n\n",inet_ntoa(client.sin_addr), ntohs(client.sin_port));
 
-	   	printf("Enlace.c = > Frame Recebido! (tam_buffer_frame: '%d', ecc: '%d', tam_data: '%lu', tam_frame: '%lu'\n",frame_rcv.tam_buffer_frame,
+	   	printf("Enlace.c (server)= > Frame Recebido! (tam_buffer_frame: '%d', ecc: '%d', tam_data: '%lu', tam_frame: '%lu'\n",frame_rcv.tam_buffer_frame,
 			frame_rcv.ecc,sizeof(frame_rcv.data),sizeof(frame_rcv));
 
 	    ecc = frame_rcv.ecc;
@@ -223,12 +223,12 @@ void montarDatagrama(struct frame datagram){
 
 	pthread_mutex_lock(&exc_aces2);
 
-		memcpy(&shm_ren_rcv, &datagram.data, sizeof(datagram.data));
+		memcpy(&shm_rcv, &datagram.data, sizeof(datagram.data));
 
-		shm_ren_rcv.tam_buffer = datagram.tam_buffer_frame;
+		shm_rcv.tam_buffer = datagram.tam_buffer_frame;
 
-		shm_ren_rcv.env_no = -1;
-		shm_ren_env.erro = 0;
+		shm_rcv.env_no = -1;
+		shm_rcv.erro = 0;
 
 	pthread_mutex_unlock(&exc_aces2);
 
@@ -238,9 +238,9 @@ void montarFrame(struct frame *datagram){
 
 	datagram->ecc = 0;
 
-	datagram->tam_buffer_frame = shm_ren_env.tam_buffer;
+	datagram->tam_buffer_frame = shm_env.tam_buffer;
 
-	memcpy(&datagram->data, &shm_ren_env, sizeof(shm_ren_env));
+	memcpy(&datagram->data, &shm_env, sizeof(shm_env));
 }
 
 int checkSum(struct frame datagram){

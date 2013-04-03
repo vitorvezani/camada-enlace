@@ -37,7 +37,7 @@ struct frame{
 #define NOS 			1
 #define ENLACES 		2
 
-extern struct datagrama shm_ren_env,shm_ren_rcv;
+extern struct datagrama shm_env,shm_rcv;
 extern struct file file_info;
 extern pthread_mutex_t exc_aces,exc_aces2;
 
@@ -45,6 +45,6 @@ void colocarArquivoStruct(FILE * fp,struct ligacoes * ligacao);
 void retirarEspaco(char * string);
 void montarFrame(struct frame *datagram);
 void montarDatagrama(struct frame datagram);
-void *enviarPacotes(void *param);
-void *receberPacotes(void *param);
+void *enviarFrames(void *param);
+void *receberFrames(void *param);
 int checkSum(struct frame datagram);

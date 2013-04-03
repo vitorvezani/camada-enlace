@@ -26,9 +26,9 @@ struct file{
 	int num_no;
 };
 
-extern struct datagrama shm_ren_env,shm_ren_rcv;
+extern struct datagrama shm_env,shm_rcv;
 extern struct file file_info;
 extern pthread_mutex_t exc_aces,exc_aces2;
 
-void *enviarDados();
-void *receberDados();
+void *enviarDatagramas();
+void *receberDatagramas();

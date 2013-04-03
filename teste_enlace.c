@@ -10,24 +10,27 @@
 void *iniciarTesteEnlace(){
 
 	int te,tr;
-	pthread_t threadEnviarDados,threadReceberDados;
+	pthread_t threadEnviarDatagramas,threadReceberDatagramas;
 
-	te = pthread_create(&threadEnviarDados, NULL, enviarDados,NULL);
+	te = pthread_create(&threadEnviarDatagramas, NULL, enviarDatagramas,NULL);
 
 	if (te){
-  		printf("ERRO: impossivel criar a thread : Enviar Dados\n");
+  		printf("ERRO: impossivel criar a thread : enviarDatagramas\n");
   		exit(-1);
 	}
 
-	tr = pthread_create(&threadReceberDados, NULL, receberDados, NULL);
+	tr = pthread_create(&threadReceberDatagramas, NULL, receberDatagramas, NULL);
 
 	if(tr){
-  		printf("ERRO: impossivel criar a thread : Receber Dados\n");
+  		printf("ERRO: impossivel criar a thread : receberDatagramas\n");
   		exit(-1);
 	}
+
+	pthread_join(threadEnviarDatagramas, NULL);
+	pthread_join(threadReceberDatagramas, NULL);
 }
 
-void *enviarDados(){
+void *enviarDatagramas(){
 	
 	char charopt[128];	
 
@@ -44,36 +47,36 @@ void *enviarDados(){
 		fgets(charopt , 127 , stdin);
 		charopt[strlen(charopt)-1]='\0';
 
-        strcpy(shm_ren_env.buffer,charopt);
+        strcpy(shm_env.buffer,charopt);
 
-        shm_ren_env.type = 2;
-		shm_ren_env.tam_buffer = strlen(shm_ren_env.buffer);
-		shm_ren_env.env_no = 2;
+        shm_env.type = 2;
+		shm_env.tam_buffer = strlen(shm_env.buffer);
+		shm_env.env_no = 2;
 
 	    pthread_mutex_unlock(&exc_aces);
 
 	   	pthread_mutex_lock(&exc_aces);
 
-	   	if (shm_ren_env.tam_buffer != 0)
+	   	if (shm_env.tam_buffer != 0)
 	   	{
-	   		printf("Teste_enlace.c = > Type: '%d', Num nó: '%d', Data: '%s', Tamanho : '%d'\n",shm_ren_env.type,shm_ren_env.env_no,shm_ren_env.buffer,shm_ren_env.tam_buffer);
+	   		printf("Teste_enlace.c = > Type: '%d', Num nó: '%d', Data: '%s', Tamanho : '%d'\n",shm_env.type,shm_env.env_no,shm_env.buffer,shm_env.tam_buffer);
 
-	   		if (shm_ren_env.erro == 0)
+	   		if (shm_env.erro == 0)
 		   	{
 		   		printf("Teste_enlace.c = > Dados Enviados\n");
-		   	}else if (shm_ren_env.erro == -1)
+		   	}else if (shm_env.erro == -1)
 		   	{
 		   		printf("Teste_enlace.c = > Não achou nó\n");
-		   	}else if (shm_ren_env.erro > 0)
+		   	}else if (shm_env.erro > 0)
 		   	{
-		   		printf("Teste_enlace.c = > MTU excedido dividir o pacote no MAX em '%d' bytes \n",shm_ren_env.erro);
+		   		printf("Teste_enlace.c = > MTU excedido dividir o pacote no MAX em '%d' bytes \n",shm_env.erro);
 		   	}else
 		   		printf("Teste_enlace.c = > Erro desconhecido\n");
 	   	
-		   	shm_ren_env.tam_buffer = 0;
-			shm_ren_env.env_no = 0;
-			strcpy(shm_ren_env.buffer,"");
-			shm_ren_env.erro = 0;
+		   	shm_env.tam_buffer = 0;
+			shm_env.env_no = 0;
+			strcpy(shm_env.buffer,"");
+			shm_env.erro = 0;
 	   	}
 
 	   	pthread_mutex_unlock(&exc_aces);
@@ -81,18 +84,18 @@ void *enviarDados(){
 
 }
 
-void *receberDados(){
+void *receberDatagramas(){
 
 	while(TRUE){
 
 		pthread_mutex_lock(&exc_aces2);
 
-		if (shm_ren_rcv.erro == 0)
+		if (shm_rcv.erro == 0)
 		{
-			printf("Teste_enlace.c = > Type: '%d', Tam_buffer: '%d'Bytes, Env_no: '%d',Buffer: '%s', Erro: '%d' \n",shm_ren_rcv.type,shm_ren_rcv.tam_buffer,shm_ren_rcv.env_no,
-				shm_ren_rcv.buffer,shm_ren_rcv.erro );
+			printf("Teste_enlace.c = > Type: '%d', Tam_buffer: '%d'Bytes, Env_no: '%d',Buffer: '%s', Erro: '%d' \n",shm_rcv.type,shm_rcv.tam_buffer,shm_rcv.env_no,
+				shm_rcv.buffer,shm_rcv.erro );
 
-			shm_ren_rcv.erro = -1;
+			shm_rcv.erro = -1;
 
 			pthread_mutex_unlock(&exc_aces2);
 		}else

@@ -23,7 +23,7 @@ struct file{
 	int num_no;
 };
 
-struct datagrama shm_ren_env,shm_ren_rcv;
+struct datagrama shm_env,shm_rcv;
 struct file file_info;
 pthread_mutex_t exc_aces,exc_aces2;
 
