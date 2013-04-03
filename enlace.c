@@ -227,7 +227,7 @@ void *receberFrames(void *param){
 
 	   	montarDatagrama(frame_rcv);
 
-	   	printf("Enlace.c (server)= > Datagrama Montado!");
+	   	printf("Enlace.c (server)= > Datagrama Montado!\n");
 
 	    sum = checkSum(shm_rcv);
 
@@ -237,6 +237,8 @@ void *receberFrames(void *param){
 	    	printf("Enlace.c (server) = > Datagrama sem erro\n");
 	  	else
 	    	printf("Enlace.c (server) = > Datagrama corrompido - Pacote Descartado\n");
+
+	    shm_rcv.erro = 0;
 
 	pthread_mutex_unlock(&exc_aces2);
 
