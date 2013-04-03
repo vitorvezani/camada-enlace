@@ -206,25 +206,23 @@ void *receberFrames(void *param){
 
 	    sum = checkSum(shm_rcv);
 
-	    shm_rcv.env_no = -1;
-		shm_rcv.erro = 0;
-
 	    if (frame_rcv.ecc == sum)
 	    	printf("Enlace.c (server) = > Datagrama sem erro\n");
 	  	else
 	    	printf("Enlace.c (server) = > Datagrama corrompido - Pacote Descartado\n");
 
 	printf("Enlace.c (server) = > ECC:'%d', Sum: '%d'\n",frame_rcv.ecc,sum);
-	
-	pthread_mutex_unlock(&exc_aces2);
+
    	}
 }
 
 void montarDatagrama(struct frame datagram){
-
+			
 	pthread_mutex_lock(&exc_aces2);
 
-		memcpy(&shm_rcv, &datagram.data, sizeof(datagram.data));
+	memcpy(&shm_rcv, &datagram.data, sizeof(datagram.data));
+
+	pthread_mutex_unlock(&exc_aces2);
 
 }
 
@@ -233,6 +231,9 @@ void montarFrame(struct frame *datagram){
 	datagram->ecc = 0;
 
 	datagram->tam_buffer_frame = shm_env.tam_buffer;
+
+	shm_rcv.env_no = -1;
+	shm_rcv.erro = 0;
 
 	memcpy(&datagram->data, &shm_env, sizeof(shm_env));
 }
