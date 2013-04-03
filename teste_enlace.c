@@ -43,7 +43,7 @@ void *enviarDatagramas(){
 		fpurge(stdin);
     	fflush(stdin);
 
-        printf ("Teste_enlace.c = > Digite o Conteudo de data: ");
+        printf ("Teste_enlace.c (Enviar) = > Digite o Conteudo de data: ");
 		fgets(charopt , 127 , stdin);
 		charopt[strlen(charopt)-1]='\0';
 
@@ -59,19 +59,19 @@ void *enviarDatagramas(){
 
 	   	if (shm_env.tam_buffer != 0)
 	   	{
-	   		printf("Teste_enlace.c (Enviar) = > Type: '%d', Num nó: '%d', Data: '%s', Tamanho : '%d'\n",shm_env.type,shm_env.env_no,shm_env.buffer,shm_env.tam_buffer);
+	   		printf("Teste_enlace.c (Enviar - Retorno) = > Type: '%d', Num nó: '%d', Data: '%s', Tamanho : '%d'\n",shm_env.type,shm_env.env_no,shm_env.buffer,shm_env.tam_buffer);
 
 	   		if (shm_env.erro == 0)
 		   	{
-		   		printf("Teste_enlace.c (Enviar) = > Dados Enviados\n");
+		   		printf("Teste_enlace.c (Enviar - Retorno) = > OK\n\n");
 		   	}else if (shm_env.erro == -1)
 		   	{
-		   		printf("Teste_enlace.c (Enviar) = > Não há ligacao do nó: '%d'!\n",shm_env.env_no);
+		   		printf("Teste_enlace.c (Enviar - Retorno) = > Não há ligacao do nó: '%d'!\n\n",shm_env.env_no);
 		   	}else if (shm_env.erro > 0)
 		   	{
-		   		printf("Teste_enlace.c (Enviar) = > MTU excedido dividir o pacote no MAX em '%d' bytes \n",shm_env.erro);
+		   		printf("Teste_enlace.c (Enviar - Retorno) = > MTU excedido dividir o pacote no MAX em '%d' bytes\n\n",shm_env.erro);
 		   	}else
-		   		printf("Teste_enlace.c (Enviar) = > Erro desconhecido\n");
+		   		printf("Teste_enlace.c (Enviar - Retorno) = > Erro desconhecido\n\n");
 	   	
 		   	shm_env.tam_buffer = 0;
 			shm_env.env_no = 0;

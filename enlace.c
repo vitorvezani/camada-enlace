@@ -83,7 +83,7 @@ void *enviarFrames(void *param){
 				if((ligacao.enlaces[i][0] == file_info.num_no) && (shm_env.env_no == ligacao.enlaces[i][1]))
 				{
 					#ifdef DEBBUG_ENLACE
-					printf("Enlace.c = > Existe Ligacao nos [Enlaces]");
+					printf("Enlace.c = > Existe Ligacao nos [Enlaces]\n");
 					#endif
 
 					mtu = ligacao.enlaces[i][2];
@@ -136,20 +136,16 @@ void *enviarFrames(void *param){
 							printf("Enlace.c = > ECC Calculado! ecc: '%d'\n",frame_env.ecc);
 							#endif	
 
-							//set_garbler(0,0,0);
+							set_garbler(0,0,0);
 
-							//if (sendto_garbled(s, &frame_env, sizeof(frame_env), 0,(struct sockaddr *) &to,sizeof (to)) < 0){
-							//	perror("sendto()");
-							//	printf("Enlace.c = > Dados não enviados!\n");
-
-							if (sendto(s, &frame_env, sizeof(frame_env), 0,(struct sockaddr *) &to,sizeof (to)) < 0){
+							if (sendto_garbled(s, &frame_env, sizeof(frame_env), 0,(struct sockaddr *) &to,sizeof (to)) < 0){
 								perror("sendto()");
 								printf("Enlace.c = > Dados não enviados!\n");
-
 							}else{
 								printf("Enlace.c = > Dados enviados!\n");
 								flag = 1;
 							}
+
 						}
 					}
 				}
@@ -222,7 +218,7 @@ void *receberFrames(void *param){
 	        exit(1);
 	    }
 
-	   	printf("Enlace.c (server)= > Frame Recebido! tam_buffer_frame: '%d', ecc: '%d', tam_datagrama: '%lu', tam_frame: '%lu'\n",frame_rcv.tam_buffer_frame,
+	   	printf("\nEnlace.c (server)= > Frame Recebido! tam_buffer_frame: '%d', ecc: '%d', tam_datagrama: '%lu', tam_frame: '%lu'\n",frame_rcv.tam_buffer_frame,
 			frame_rcv.ecc,sizeof(frame_rcv.data),sizeof(frame_rcv));
 
 	   	montarDatagrama(frame_rcv);
@@ -235,10 +231,10 @@ void *receberFrames(void *param){
 
 	    if (frame_rcv.ecc == sum)
 	    	printf("Enlace.c (server) = > Datagrama sem erro\n");
-	  	else
+	  	else{
 	    	printf("Enlace.c (server) = > Datagrama corrompido - Pacote Descartado\n");
-
-	    shm_rcv.erro = 0;
+	    	shm_rcv.erro = -1;
+	    }
 
 	pthread_mutex_unlock(&exc_aces2);
 
@@ -259,12 +255,11 @@ void montarFrame(struct frame *datagram){
 
 	datagram->tam_buffer_frame = shm_env.tam_buffer;
 
-	shm_rcv.env_no = -1;
-	shm_rcv.erro = 0;
+	shm_env.env_no = -1;
+	shm_env.erro = 0;
 
 	memcpy(&datagram->data, &shm_env, sizeof(shm_env));
 
-	shm_rcv.erro = 1;
 }
 
 int checkSum(struct datagrama datagram){
