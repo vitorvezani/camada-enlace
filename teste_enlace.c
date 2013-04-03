@@ -59,19 +59,19 @@ void *enviarDatagramas(){
 
 	   	if (shm_env.tam_buffer != 0)
 	   	{
-	   		printf("Teste_enlace.c = > Type: '%d', Num nó: '%d', Data: '%s', Tamanho : '%d'\n",shm_env.type,shm_env.env_no,shm_env.buffer,shm_env.tam_buffer);
+	   		printf("Teste_enlace.c (Enviar) = > Type: '%d', Num nó: '%d', Data: '%s', Tamanho : '%d'\n",shm_env.type,shm_env.env_no,shm_env.buffer,shm_env.tam_buffer);
 
 	   		if (shm_env.erro == 0)
 		   	{
-		   		printf("Teste_enlace.c = > Dados Enviados\n");
+		   		printf("Teste_enlace.c (Enviar) = > Dados Enviados\n");
 		   	}else if (shm_env.erro == -1)
 		   	{
-		   		printf("Teste_enlace.c = > Não achou nó\n");
+		   		printf("Teste_enlace.c (Enviar) = > Não há ligacao do nó: '%d'!\n",shm_env.env_no);
 		   	}else if (shm_env.erro > 0)
 		   	{
-		   		printf("Teste_enlace.c = > MTU excedido dividir o pacote no MAX em '%d' bytes \n",shm_env.erro);
+		   		printf("Teste_enlace.c (Enviar) = > MTU excedido dividir o pacote no MAX em '%d' bytes \n",shm_env.erro);
 		   	}else
-		   		printf("Teste_enlace.c = > Erro desconhecido\n");
+		   		printf("Teste_enlace.c (Enviar) = > Erro desconhecido\n");
 	   	
 		   	shm_env.tam_buffer = 0;
 			shm_env.env_no = 0;
@@ -92,7 +92,7 @@ void *receberDatagramas(){
 
 		if (shm_rcv.erro == 0)
 		{
-			printf("Teste_enlace.c = > Type: '%d', Tam_buffer: '%d' Bytes, Buffer: '%s'\n",shm_rcv.type,shm_rcv.tam_buffer,
+			printf("Teste_enlace.c (Receber) = > Type: '%d', Tam_buffer: '%d' Bytes, Buffer: '%s'\n",shm_rcv.type,shm_rcv.tam_buffer,
 				shm_rcv.buffer);
 
 			shm_rcv.erro = -1;

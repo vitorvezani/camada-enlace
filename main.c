@@ -45,7 +45,7 @@ int main(int argc, char const *argv[]){
 			exit(-1);
 	}
 
-	usleep(400);
+	usleep(800);
 
 	//Inicia Camada de TesteEnlace
 	tite = pthread_create(&threadIniciaTesteEnlace, NULL, iniciarTesteEnlace, NULL);

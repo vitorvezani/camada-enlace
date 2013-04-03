@@ -15,7 +15,7 @@ struct ligacoes{
     int enlaces[18][3];
 };
 
-#define DEBBUG
+//#define DEBBUG
 
 #define TRUE 			1
 #define FALSE 			0

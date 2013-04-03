@@ -67,7 +67,7 @@ void *enviarFrames(void *param){
 		struct frame frame_env;
 		struct sockaddr_in to;
 		int atoi_result = -1;
-		int s;
+		int s,mtu;
 		
 		pthread_mutex_lock(&exc_aces);
 
@@ -86,6 +86,8 @@ void *enviarFrames(void *param){
 					printf("Enlace.c = > Existe Ligacao nos [Enlaces]");
 					#endif
 
+					mtu = ligacao.enlaces[i][2];
+
 					for(i = 0; i < 6; ++i)
 					{
 						atoi_result = atoi(ligacao.nos[i][0]);
@@ -99,7 +101,7 @@ void *enviarFrames(void *param){
 							}
 
 							#ifdef DEBBUG_ENLACE
-							printf("Enlace.c = > Existe [Nó]: '%d',possui IP: '%s' , Porta: '%d'\n",shm_env.env_no,ligacao.nos[i][1],atoi(ligacao.nos[i][2]));
+							printf("Enlace.c = > Existe -> [Nó]: '%d',possui IP: '%s' , Porta: '%d'\n",shm_env.env_no,ligacao.nos[i][1],atoi(ligacao.nos[i][2]));
 							#endif
 
 							to.sin_family = AF_INET; // Tipo do endereço         
@@ -113,13 +115,13 @@ void *enviarFrames(void *param){
 							montarFrame(&frame_env);
 
 							#ifdef DEBBUG_ENLACE
-							printf("Enlace.c = > Frame Montado! (tam_buffer_frame: '%d', tam_data: '%lu', tam_frame: '%lu'\n",frame_env.tam_buffer_frame,
+							printf("Enlace.c = > Frame Montado! tam_buffer_frame: '%d', tam_data: '%lu', tam_frame: '%lu'\n",frame_env.tam_buffer_frame,
 								sizeof(frame_env.data),sizeof(frame_env));
 							#endif
 
-							if(sizeof(frame_env) > ligacao.enlaces[i][2]){
+							if(sizeof(frame_env) > mtu){
 								printf("Enlace.c = > Erro de MTU\n");
-								shm_env.erro = ligacao.enlaces[i][2];
+								shm_env.erro = mtu;
 								flag = 2;
 								break;
 							}
@@ -131,17 +133,23 @@ void *enviarFrames(void *param){
 							frame_env.ecc = checkSum(shm_env);
 
 							#ifdef DEBBUG_ENLACE
-							printf("Enlace.c = > ECC Calculado! (ecc: '%d'\n",frame_env.ecc);
+							printf("Enlace.c = > ECC Calculado! ecc: '%d'\n",frame_env.ecc);
 							#endif	
 
-							if (sendto(s, &frame_env, sizeof(frame_env), 0, (struct sockaddr *) &to, sizeof (to)) < 0) {
+							//set_garbler(0,0,0);
+
+							//if (sendto_garbled(s, &frame_env, sizeof(frame_env), 0,(struct sockaddr *) &to,sizeof (to)) < 0){
+							//	perror("sendto()");
+							//	printf("Enlace.c = > Dados não enviados!\n");
+
+							if (sendto(s, &frame_env, sizeof(frame_env), 0,(struct sockaddr *) &to,sizeof (to)) < 0){
 								perror("sendto()");
-								exit(2);
+								printf("Enlace.c = > Dados não enviados!\n");
+
+							}else{
+								printf("Enlace.c = > Dados enviados!\n");
+								flag = 1;
 							}
-
-							printf("Enlace.c = > Dados enviados!\n");
-
-							flag = 1;
 						}
 					}
 				}
@@ -214,7 +222,7 @@ void *receberFrames(void *param){
 	        exit(1);
 	    }
 
-	   	printf("Enlace.c (server)= > Frame Recebido! (tam_buffer_frame: '%d', ecc: '%d', tam_datagrama: '%lu', tam_frame: '%lu'\n",frame_rcv.tam_buffer_frame,
+	   	printf("Enlace.c (server)= > Frame Recebido! tam_buffer_frame: '%d', ecc: '%d', tam_datagrama: '%lu', tam_frame: '%lu'\n",frame_rcv.tam_buffer_frame,
 			frame_rcv.ecc,sizeof(frame_rcv.data),sizeof(frame_rcv));
 
 	   	montarDatagrama(frame_rcv);
@@ -253,6 +261,8 @@ void montarFrame(struct frame *datagram){
 	shm_rcv.erro = 0;
 
 	memcpy(&datagram->data, &shm_env, sizeof(shm_env));
+
+	shm_rcv.erro = 1;
 }
 
 int checkSum(struct datagrama datagram){
