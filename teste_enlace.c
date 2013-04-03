@@ -31,8 +31,8 @@ void *iniciarTesteEnlace(){
 }
 
 void *enviarDatagramas(){
-	
-	char charopt[128];	
+
+	char charopt[128];
 
 	while(1){
 
@@ -92,8 +92,8 @@ void *receberDatagramas(){
 
 		if (shm_rcv.erro == 0)
 		{
-			printf("Teste_enlace.c = > Type: '%d', Tam_buffer: '%d'Bytes, Env_no: '%d',Buffer: '%s', Erro: '%d' \n",shm_rcv.type,shm_rcv.tam_buffer,shm_rcv.env_no,
-				shm_rcv.buffer,shm_rcv.erro );
+			printf("Teste_enlace.c = > Type: '%d', Tam_buffer: '%d' Bytes, Buffer: '%s'\n",shm_rcv.type,shm_rcv.tam_buffer,
+				shm_rcv.buffer);
 
 			shm_rcv.erro = -1;
 

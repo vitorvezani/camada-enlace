@@ -61,6 +61,7 @@ int main(int argc, char const *argv[]){
 
 	//Destroi o Mutex
   	pthread_mutex_destroy(&exc_aces);
+  	pthread_mutex_destroy(&exc_aces2);
 
 	return 0;
 }

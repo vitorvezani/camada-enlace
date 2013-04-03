@@ -31,6 +31,8 @@ struct frame{
 	int ecc;
 };
 
+#define DEBBUG_ENLACE
+
 #define TRUE 			1
 #define FALSE 			0
 

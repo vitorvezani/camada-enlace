@@ -58,7 +58,9 @@ void *enviarFrames(void *param){
 
 	int i,j,flag;
 
+	#ifdef DEBBUG_ENLACE
 	printf("\n");
+	#endif
 
 	while(1){
 
@@ -77,13 +79,18 @@ void *enviarFrames(void *param){
 
 			for (i = 0; i < 18; ++i)
 			{
-
+				//Verificar se existe ligacao entre seu nó e o nó destino
 				if((ligacao.enlaces[i][0] == file_info.num_no) && (shm_env.env_no == ligacao.enlaces[i][1]))
 				{
+					#ifdef DEBBUG_ENLACE
+					printf("Enlace.c = > Existe Ligacao nos [Enlaces]");
+					#endif
+
 					for(i = 0; i < 6; ++i)
 					{
 						atoi_result = atoi(ligacao.nos[i][0]);
 
+						//Verificar o IP e Porta do nó destino
 						if (atoi_result == shm_env.env_no)
 						{
 							if ((s = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
@@ -91,40 +98,48 @@ void *enviarFrames(void *param){
 							exit(1);
 							}
 
-							printf("Enlace.c = > Achou! Nó: '%d', IP: '%s' , Porta: '%d'\n",shm_env.env_no,ligacao.nos[i][1],atoi(ligacao.nos[i][2]));
+							#ifdef DEBBUG_ENLACE
+							printf("Enlace.c = > Existe [Nó]: '%d',possui IP: '%s' , Porta: '%d'\n",shm_env.env_no,ligacao.nos[i][1],atoi(ligacao.nos[i][2]));
+							#endif
 
 							to.sin_family = AF_INET; // Tipo do endereço         
 						    to.sin_port = htons(atoi(ligacao.nos[i][2])); // Porta do servidor        
 						    to.sin_addr.s_addr = inet_addr(ligacao.nos[i][1]); // Endereço IP do servidor  
-						
+							
+							#ifdef DEBBUG_ENLACE
 						    printf("Enlace.c = > Nó Configurado\n");
+						    #endif
 
 							montarFrame(&frame_env);
 
-							if(frame_env.tam_buffer_frame > ligacao.enlaces[i][2]){
+							#ifdef DEBBUG_ENLACE
+							printf("Enlace.c = > Frame Montado! (tam_buffer_frame: '%d', tam_data: '%lu', tam_frame: '%lu'\n",frame_env.tam_buffer_frame,
+								sizeof(frame_env.data),sizeof(frame_env));
+							#endif
+
+							if(sizeof(frame_env) > ligacao.enlaces[i][2]){
 								printf("Enlace.c = > Erro de MTU\n");
 								shm_env.erro = ligacao.enlaces[i][2];
 								flag = 2;
 								break;
 							}
 
-							printf("Enlace.c = > Frame Montado! (tam_buffer_frame: '%d', ecc: '%d', tam_data: '%lu', tam_frame: '%lu'\n",frame_env.tam_buffer_frame,
-								frame_env.ecc,sizeof(frame_env.data),sizeof(frame_env));
+							#ifdef DEBBUG_ENLACE
+							printf("Enlace.c = > sizeof(Frame): '%lu', MTU: '%d'\n",sizeof(frame_env),ligacao.enlaces[i][2]);
+							#endif	
 
 							frame_env.ecc = checkSum(shm_env);
 
-							printf("Enlace.c = > ECC Calculado! (tam_buffer_frame: '%d', ecc: '%d', tam_data: '%lu', tam_frame: '%lu'\n",frame_env.tam_buffer_frame,
-								frame_env.ecc,sizeof(frame_env.data),sizeof(frame_env));
-
+							#ifdef DEBBUG_ENLACE
+							printf("Enlace.c = > ECC Calculado! (ecc: '%d'\n",frame_env.ecc);
+							#endif	
 
 							if (sendto(s, &frame_env, sizeof(frame_env), 0, (struct sockaddr *) &to, sizeof (to)) < 0) {
 								perror("sendto()");
 								exit(2);
 							}
 
-							#ifdef DEBBUG
 							printf("Enlace.c = > Dados enviados!\n");
-							#endif
 
 							flag = 1;
 						}
@@ -139,7 +154,9 @@ void *enviarFrames(void *param){
 				shm_env.erro = 0;
 			}
 
-			printf("Enlace.c = > shm_env.erro : '%d'\n\n",shm_env.erro );
+			#ifdef DEBBUG_ENLACE
+			printf("Enlace.c = > Setado variavel de erro shm_env: '%d'\n\n",shm_env.erro );
+			#endif
 
 		    pthread_mutex_unlock(&exc_aces);
 		}else
@@ -167,14 +184,16 @@ void *receberFrames(void *param){
 
 		if(atoi_result == file_info.num_no){
 
+			#ifdef DEBBUG_ENLACE
+			//printf("Enlace.c (server) = > Escutando IP: '%s' Porta: '%s'\n",ligacao.nos[i][1],ligacao.nos[i][2]);
+			#endif
+
 			server.sin_family = AF_INET; /* Tipo do endereço             */
-			server.sin_port = htons(5001); /* Escolhe uma porta disponível */
-			server.sin_addr.s_addr = INADDR_ANY; /* Endereço IP do servidor */
+			server.sin_port = htons(atoi(ligacao.nos[i][2])); /* Escolhe uma porta disponível */
+    		server.sin_addr.s_addr = inet_addr(ligacao.nos[i][1]); /* Endereço IP do servidor */
 
-			//IP's Variaveis de acordo com a tabela >erro no bind()<
-
-    		//server.sin_port = htons(atoi(ligacao.nos[i][2])); /* Escolhe uma porta disponível */
-    		//server.sin_addr.s_addr = inet_addr(ligacao.nos[i][1]); /* Endereço IP do servidor */
+			//server.sin_port = htons(5001); /* Escolhe uma porta disponível */
+			//server.sin_addr.s_addr = INADDR_ANY; /* Endereço IP do servidor */
 		}
 	}
 	
@@ -182,8 +201,6 @@ void *receberFrames(void *param){
         perror("bind()");
         exit(1);
     }
-
-    //printf("Enlace.c (server) = > Escutando IP: '%s' Porta: '%d'\n",inet_ntoa(server.sin_addr),ntohs(server.sin_port));
 
 	while(TRUE){
 
@@ -197,21 +214,23 @@ void *receberFrames(void *param){
 	        exit(1);
 	    }
 
-	    //printf("Enlace.c (server) = > Recebida a mensagem do endereço IP %s da porta %d\n\n",inet_ntoa(from.sin_addr), ntohs(from.sin_port));
-
-	   	printf("Enlace.c (server)= > Frame Recebido! (tam_buffer_frame: '%d', ecc: '%d', tam_data: '%lu', tam_frame: '%lu'\n",frame_rcv.tam_buffer_frame,
+	   	printf("Enlace.c (server)= > Frame Recebido! (tam_buffer_frame: '%d', ecc: '%d', tam_datagrama: '%lu', tam_frame: '%lu'\n",frame_rcv.tam_buffer_frame,
 			frame_rcv.ecc,sizeof(frame_rcv.data),sizeof(frame_rcv));
 
 	   	montarDatagrama(frame_rcv);
 
+	   	printf("Enlace.c (server)= > Datagrama Montado!");
+
 	    sum = checkSum(shm_rcv);
+
+	    printf("Enlace.c (server) = > ECC Recalculado -> frame_rcv.ECC:'%d', ECC recalculado: '%d'\n",frame_rcv.ecc,sum);
 
 	    if (frame_rcv.ecc == sum)
 	    	printf("Enlace.c (server) = > Datagrama sem erro\n");
 	  	else
 	    	printf("Enlace.c (server) = > Datagrama corrompido - Pacote Descartado\n");
 
-	printf("Enlace.c (server) = > ECC:'%d', Sum: '%d'\n",frame_rcv.ecc,sum);
+	pthread_mutex_unlock(&exc_aces2);
 
    	}
 }
@@ -221,8 +240,6 @@ void montarDatagrama(struct frame datagram){
 	pthread_mutex_lock(&exc_aces2);
 
 	memcpy(&shm_rcv, &datagram.data, sizeof(datagram.data));
-
-	pthread_mutex_unlock(&exc_aces2);
 
 }
 
@@ -249,7 +266,7 @@ int checkSum(struct datagrama datagram){
 	{
 		memcpy(&aux, ptr, sizeof(int));
 		ptr += sizeof(int);
-		sum += aux ;
+		sum += aux;
 	}
 	return sum;
 }
