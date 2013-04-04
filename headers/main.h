@@ -25,7 +25,8 @@ struct file{
 
 struct datagrama shm_env,shm_rcv;
 struct file file_info;
-pthread_mutex_t exc_aces,exc_aces2;
+pthread_mutex_t mutex_env1,mutex_env2,mutex_env3;
+pthread_mutex_t mutex_rcv1,mutex_rcv2,mutex_rcv3;
 
 void *iniciarEnlace();
 void *iniciarTesteEnlace();

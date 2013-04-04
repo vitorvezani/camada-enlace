@@ -77,15 +77,15 @@ void *enviarFrames(void *param){
 		int atoi_result = -1;
 		int s,mtu;
 		
-		//trava o mutex exc_acess
-		pthread_mutex_lock(&exc_aces);
-
-		//Teste de flags para ver se há coisas no buffer de envio
-		if(shm_env.env_no != -1 && shm_env.tam_buffer != 0){
+		//trava mutex de sincronismo
+		pthread_mutex_lock(&mutex_env2);
 
 			flag = 0;
 
 		    fflush(stdin);
+
+		    //Trava acesso exclusivo ao buffer
+			pthread_mutex_lock(&mutex_env3);
 
 		    //Loop no ligacao enlaces
 			for (i = 0; i < 18; ++i)
@@ -180,15 +180,11 @@ void *enviarFrames(void *param){
 				shm_env.erro = 0;
 			}
 
-			#ifdef DEBBUG_ENLACE
-			printf("Enlace.c = > Setado variavel de erro shm_env: '%d'\n\n",shm_env.erro );
-			#endif
+			//Destrava acesso exclusivo ao buffer
+			pthread_mutex_unlock(&mutex_env3);
 
-			//Libera mutex exc_acess
-		    pthread_mutex_unlock(&exc_aces);
-		}else
-			//Libera mutex exc_acess
-			pthread_mutex_unlock(&exc_aces);
+			//Libera mutex para sincronismo
+			pthread_mutex_unlock(&mutex_env1);
 	}
 }
 
@@ -237,18 +233,21 @@ void *receberFrames(void *param){
 		struct frame frame_rcv;
 		int sum = 0;
 
-		//Fica travado esperando receber Frames
+		//Trava o mutex de sincronismo
+	    pthread_mutex_lock(&mutex_rcv1);
+
+		//Fica esperando receber Frames
 	    from_address_size = sizeof (from);
 	    if (recvfrom(s, &frame_rcv, sizeof (frame_rcv), 0, (struct sockaddr *) &from,&from_address_size) < 0) {
 	        perror("recvfrom()");
 	        exit(1);
 	    }
 
+		//Trava acesso exclusivo ao buffer
+	   	pthread_mutex_lock(&mutex_rcv3);
+
 	   	printf("\nEnlace.c (server)= > Frame Recebido! tam_buffer_frame: '%d', ecc: '%d', tam_datagrama: '%lu', tam_frame: '%lu'\n",frame_rcv.tam_buffer_frame,
 			frame_rcv.ecc,sizeof(frame_rcv.data),sizeof(frame_rcv));
-
-	   	//Trava mutex exc_aces2 para mecher na variavel global shd_rcv
-	   	pthread_mutex_lock(&exc_aces2);
 
 	   	//Monta Datagrama atravez do Frame recebido
 	   	montarDatagrama(frame_rcv);
@@ -269,8 +268,11 @@ void *receberFrames(void *param){
 	    	shm_rcv.erro = -1;
 	    }
 
-	//Libera mutex
-	pthread_mutex_unlock(&exc_aces2);
+	//Libera acesso exclusivo ao buffer
+	pthread_mutex_unlock(&mutex_rcv3);
+
+	//Libera mutex de sincronismo
+	pthread_mutex_unlock(&mutex_rcv2);
 
    	}
 }

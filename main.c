@@ -28,14 +28,19 @@ int main(int argc, char const *argv[]){
 	shm_env.erro = -9;
 	shm_env.env_no = -1;
 	strcpy(shm_env.buffer,"");
-	shm_env.tam_buffer = strlen(shm_env.buffer);
+	shm_env.tam_buffer = 0;
 
 	//inicializacao do buffer Rede->Enlace(Receber)
 	shm_rcv.erro = -1;
 
-	//Inicializar Mutex
-	pthread_mutex_init(&exc_aces, NULL);
-	pthread_mutex_init(&exc_aces2, NULL);
+	//Inicializar Mutex Enviar
+	pthread_mutex_init(&mutex_env1, NULL);
+	pthread_mutex_init(&mutex_env2, NULL);
+	pthread_mutex_init(&mutex_env3, NULL);
+	//Inicializar Mutex Receber
+	pthread_mutex_init(&mutex_rcv1, NULL);
+	pthread_mutex_init(&mutex_rcv2, NULL);
+	pthread_mutex_init(&mutex_rcv3, NULL);
 
 	//Inicia a thread iniciarEnlace
 	te = pthread_create(&threadIniciaEnlace, NULL, iniciarEnlace, NULL);
@@ -59,9 +64,14 @@ int main(int argc, char const *argv[]){
 	pthread_join(threadIniciaEnlace, NULL);
 	pthread_join(threadIniciaTesteEnlace, NULL);
 
-	//Destroi o Mutex
-  	pthread_mutex_destroy(&exc_aces);
-  	pthread_mutex_destroy(&exc_aces2);
+	//Destroi o Mutex env
+	pthread_mutex_destroy(&mutex_env1);
+	pthread_mutex_destroy(&mutex_env2);
+	pthread_mutex_destroy(&mutex_env3);
+	//Destroi o Mutex rcv
+	pthread_mutex_destroy(&mutex_rcv1);
+	pthread_mutex_destroy(&mutex_rcv2);
+	pthread_mutex_destroy(&mutex_rcv3);
 
 	return 0;
 }

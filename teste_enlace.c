@@ -21,7 +21,7 @@ void *iniciarTesteEnlace(){
 	}
 
 	//Inicia a thread enviarDatagramas
-	tr = pthread_create(&threadReceberDatagramas, NULL, enviarDatagramas, NULL);
+	tr = pthread_create(&threadReceberDatagramas, NULL, receberDatagramas, NULL);
 
 	if(tr){
   		printf("ERRO: impossivel criar a thread : receberDatagramas\n");
@@ -39,13 +39,41 @@ void *enviarDatagramas(){
 
 	while(1){
 
-		//Trava o Mutex
-		pthread_mutex_lock(&exc_aces);
+		//Trava o Mutex de sincronismo
+		pthread_mutex_lock(&mutex_env1);
 
 		usleep(300);
 
 		fpurge(stdin);
     	fflush(stdin);
+
+    	//Trava acesso exclusivo
+    	pthread_mutex_lock(&mutex_env3);
+
+		if (shm_env.tam_buffer != 0){
+
+   		printf("Teste_enlace.c (Enviar - Retorno) = > Type: '%d', Num nó: '%d', Data: '%s', Tamanho : '%d'\n",shm_env.type,shm_env.env_no,shm_env.buffer,shm_env.tam_buffer);
+
+   		//Testa o retorno da camada de enlace
+   		if (shm_env.erro == 0)
+	   	{
+	   		printf("Teste_enlace.c (Enviar - Retorno) = > OK\n\n");
+	   	}else if (shm_env.erro == -1)
+	   	{
+	   		printf("Teste_enlace.c (Enviar - Retorno) = > Não há ligacao do nó: '%d'!\n\n",shm_env.env_no);
+	   	}else if (shm_env.erro > 0)
+	   	{
+	   		printf("Teste_enlace.c (Enviar - Retorno) = > MTU excedido dividir o pacote no MAX em '%d' bytes\n\n",shm_env.erro);
+	   	}else
+	   		printf("Teste_enlace.c (Enviar - Retorno) = > Erro desconhecido\n\n");
+   	
+   		//Reseta os valores
+	   	shm_env.tam_buffer = 0;
+		shm_env.env_no = 0;
+		strcpy(shm_env.buffer,"");
+		shm_env.erro = 0;
+
+   		}
 
 		//Pega os Dados digitado pelo usuario
         printf ("Teste_enlace.c (Enviar) = > Digite o Conteudo de data: ");
@@ -59,62 +87,34 @@ void *enviarDatagramas(){
 		shm_env.tam_buffer = strlen(shm_env.buffer);
 		shm_env.env_no = 2;
 
-		//Destrava o Mutex
-	    pthread_mutex_unlock(&exc_aces);
+		//Destrava acesso exclusivo
+		pthread_mutex_unlock(&mutex_env3);
 
+		//Destrava mutex de sincronismo
+	    pthread_mutex_unlock(&mutex_env2);
 
-		//Trava o Mutex
-	   	pthread_mutex_lock(&exc_aces);
-
-	   	//Flag para ver se há dados na variavel shm_env
-	   	if (shm_env.tam_buffer != 0)
-	   	{
-	   		printf("Teste_enlace.c (Enviar - Retorno) = > Type: '%d', Num nó: '%d', Data: '%s', Tamanho : '%d'\n",shm_env.type,shm_env.env_no,shm_env.buffer,shm_env.tam_buffer);
-
-	   		//Testa o retorno da camada de enlace
-	   		if (shm_env.erro == 0)
-		   	{
-		   		printf("Teste_enlace.c (Enviar - Retorno) = > OK\n\n");
-		   	}else if (shm_env.erro == -1)
-		   	{
-		   		printf("Teste_enlace.c (Enviar - Retorno) = > Não há ligacao do nó: '%d'!\n\n",shm_env.env_no);
-		   	}else if (shm_env.erro > 0)
-		   	{
-		   		printf("Teste_enlace.c (Enviar - Retorno) = > MTU excedido dividir o pacote no MAX em '%d' bytes\n\n",shm_env.erro);
-		   	}else
-		   		printf("Teste_enlace.c (Enviar - Retorno) = > Erro desconhecido\n\n");
-	   	
-	   		//Reseta os valores
-		   	shm_env.tam_buffer = 0;
-			shm_env.env_no = 0;
-			strcpy(shm_env.buffer,"");
-			shm_env.erro = 0;
-	   	}
-		//Destrava o Mutex
-	   	pthread_mutex_unlock(&exc_aces);
 	}
-
 }
 
 void *receberDatagramas(){
 
 	while(TRUE){
 
-		//Trava o Mutex
-		pthread_mutex_lock(&exc_aces2);
+		//Trava mutex de sincronismo
+		pthread_mutex_lock(&mutex_rcv2);
 
-		//Flag para ver se há erro no pacote
-		if (shm_rcv.erro == 0)
-		{
+		//Trava acesso exclusivo
+		pthread_mutex_lock(&mutex_rcv3);
+
 			printf("Teste_enlace.c (Receber) = > Type: '%d', Tam_buffer: '%d' Bytes, Buffer: '%s'\n",shm_rcv.type,shm_rcv.tam_buffer,
 				shm_rcv.buffer);
 
 			shm_rcv.erro = -1;
 
-			//Destrava o Mutex
-			pthread_mutex_unlock(&exc_aces2);
-		}else
-			//Destrava o Mutex
-			pthread_mutex_unlock(&exc_aces2);
+			//Libera acesso exclusivo
+			pthread_mutex_unlock(&mutex_rcv3);
+
+			//Destrava mutex de sinconismo
+			pthread_mutex_unlock(&mutex_rcv1);
 	}
 }
