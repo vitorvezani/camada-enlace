@@ -1,5 +1,5 @@
 //
-//  misc.h
+//  arquivo.h
 //
 //  Created by Vitor Vezani on 26/03/13.
 //  Copyright (c) 2013 Vitor Vezani. All rights reserved.

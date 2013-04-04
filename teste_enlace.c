@@ -11,7 +11,8 @@ void *iniciarTesteEnlace(){
 
 	int te,tr;
 	pthread_t threadEnviarDatagramas,threadReceberDatagramas;
-
+	
+	//Inicia a thread enviarDatagramas
 	te = pthread_create(&threadEnviarDatagramas, NULL, enviarDatagramas,NULL);
 
 	if (te){
@@ -19,13 +20,15 @@ void *iniciarTesteEnlace(){
   		exit(-1);
 	}
 
-	tr = pthread_create(&threadReceberDatagramas, NULL, receberDatagramas, NULL);
+	//Inicia a thread enviarDatagramas
+	tr = pthread_create(&threadReceberDatagramas, NULL, enviarDatagramas, NULL);
 
 	if(tr){
   		printf("ERRO: impossivel criar a thread : receberDatagramas\n");
   		exit(-1);
 	}
 
+	//Espera as threads terminarem
 	pthread_join(threadEnviarDatagramas, NULL);
 	pthread_join(threadReceberDatagramas, NULL);
 }
@@ -36,6 +39,7 @@ void *enviarDatagramas(){
 
 	while(1){
 
+		//Trava o Mutex
 		pthread_mutex_lock(&exc_aces);
 
 		usleep(300);
@@ -43,24 +47,31 @@ void *enviarDatagramas(){
 		fpurge(stdin);
     	fflush(stdin);
 
+		//Pega os Dados digitado pelo usuario
         printf ("Teste_enlace.c (Enviar) = > Digite o Conteudo de data: ");
 		fgets(charopt , 127 , stdin);
 		charopt[strlen(charopt)-1]='\0';
 
         strcpy(shm_env.buffer,charopt);
 
+        //Seta tipo de msg, tamanho da msg e nó para enviar
         shm_env.type = 2;
 		shm_env.tam_buffer = strlen(shm_env.buffer);
 		shm_env.env_no = 2;
 
+		//Destrava o Mutex
 	    pthread_mutex_unlock(&exc_aces);
 
+
+		//Trava o Mutex
 	   	pthread_mutex_lock(&exc_aces);
 
+	   	//Flag para ver se há dados na variavel shm_env
 	   	if (shm_env.tam_buffer != 0)
 	   	{
 	   		printf("Teste_enlace.c (Enviar - Retorno) = > Type: '%d', Num nó: '%d', Data: '%s', Tamanho : '%d'\n",shm_env.type,shm_env.env_no,shm_env.buffer,shm_env.tam_buffer);
 
+	   		//Testa o retorno da camada de enlace
 	   		if (shm_env.erro == 0)
 		   	{
 		   		printf("Teste_enlace.c (Enviar - Retorno) = > OK\n\n");
@@ -73,12 +84,13 @@ void *enviarDatagramas(){
 		   	}else
 		   		printf("Teste_enlace.c (Enviar - Retorno) = > Erro desconhecido\n\n");
 	   	
+	   		//Reseta os valores
 		   	shm_env.tam_buffer = 0;
 			shm_env.env_no = 0;
 			strcpy(shm_env.buffer,"");
 			shm_env.erro = 0;
 	   	}
-
+		//Destrava o Mutex
 	   	pthread_mutex_unlock(&exc_aces);
 	}
 
@@ -88,8 +100,10 @@ void *receberDatagramas(){
 
 	while(TRUE){
 
+		//Trava o Mutex
 		pthread_mutex_lock(&exc_aces2);
 
+		//Flag para ver se há erro no pacote
 		if (shm_rcv.erro == 0)
 		{
 			printf("Teste_enlace.c (Receber) = > Type: '%d', Tam_buffer: '%d' Bytes, Buffer: '%s'\n",shm_rcv.type,shm_rcv.tam_buffer,
@@ -97,8 +111,10 @@ void *receberDatagramas(){
 
 			shm_rcv.erro = -1;
 
+			//Destrava o Mutex
 			pthread_mutex_unlock(&exc_aces2);
 		}else
+			//Destrava o Mutex
 			pthread_mutex_unlock(&exc_aces2);
 	}
 }

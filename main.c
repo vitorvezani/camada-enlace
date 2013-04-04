@@ -37,7 +37,7 @@ int main(int argc, char const *argv[]){
 	pthread_mutex_init(&exc_aces, NULL);
 	pthread_mutex_init(&exc_aces2, NULL);
 
-	//Inicia Camada de Enlace
+	//Inicia a thread iniciarEnlace
 	te = pthread_create(&threadIniciaEnlace, NULL, iniciarEnlace, NULL);
 
 	if (te){
@@ -47,7 +47,7 @@ int main(int argc, char const *argv[]){
 
 	usleep(800);
 
-	//Inicia Camada de TesteEnlace
+	//Inicia a thread iniciarTesteEnlace
 	tite = pthread_create(&threadIniciaTesteEnlace, NULL, iniciarTesteEnlace, NULL);
 
 	if (tite){

@@ -29,6 +29,7 @@ void colocarArquivoStruct(FILE * fp, struct ligacoes *ligacao){
 
         while (pch != NULL)
         {
+            //Deleta Espacos
             delete_espace(pch);
 
         if (strcmp(pch,"[Nos]") == 0)
