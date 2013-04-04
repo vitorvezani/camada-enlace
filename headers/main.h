@@ -10,23 +10,23 @@
 #include <string.h>
 #include <pthread.h>     	/* para poder manipular threads */
 
-struct datagrama{
-	int type;
-	int tam_buffer;
-	int env_no;
-	char buffer[100];
-	int erro;
+struct datagrama {
+    int type;
+    int tam_buffer;
+    int env_no;
+    char buffer[100];
+    int erro;
 };
 
-struct file{
-	char file_name[20];
-	int num_no;
+struct file {
+    char file_name[20];
+    int num_no;
 };
 
-struct datagrama shm_env,shm_rcv;
+struct datagrama shm_env, shm_rcv;
 struct file file_info;
-pthread_mutex_t mutex_env1,mutex_env2,mutex_env3;
-pthread_mutex_t mutex_rcv1,mutex_rcv2,mutex_rcv3;
+pthread_mutex_t mutex_env1, mutex_env2, mutex_env3;
+pthread_mutex_t mutex_rcv1, mutex_rcv2, mutex_rcv3;
 
 void *iniciarEnlace();
 void *iniciarTesteEnlace();

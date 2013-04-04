@@ -10,7 +10,7 @@
 #include <string.h>
 #include <pthread.h>     	/* para poder manipular threads */
 
-struct ligacoes{
+struct ligacoes {
     char nos[6][3][25];
     int enlaces[18][3];
 };

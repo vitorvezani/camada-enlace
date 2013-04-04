@@ -13,23 +13,23 @@
 #define TRUE 	1
 #define FALSE	0
 
-struct datagrama{
-	int type;
-	int tam_buffer;
-	int env_no;
-	char buffer[100];
-	int erro;
+struct datagrama {
+    int type;
+    int tam_buffer;
+    int env_no;
+    char buffer[100];
+    int erro;
 };
 
-struct file{
-	char file_name[20];
-	int num_no;
+struct file {
+    char file_name[20];
+    int num_no;
 };
 
-extern struct datagrama shm_env,shm_rcv;
+extern struct datagrama shm_env, shm_rcv;
 extern struct file file_info;
-extern pthread_mutex_t mutex_env1,mutex_env2,mutex_env3;
-extern pthread_mutex_t mutex_rcv1,mutex_rcv2,mutex_rcv3;
+extern pthread_mutex_t mutex_env1, mutex_env2, mutex_env3;
+extern pthread_mutex_t mutex_rcv1, mutex_rcv2, mutex_rcv3;
 
 void *enviarDatagramas();
 void *receberDatagramas();
