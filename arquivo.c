@@ -14,9 +14,16 @@ void colocarArquivoStruct(FILE * fp, struct ligacoes *ligacao) {
     size_t len = 100;
     char *linha = malloc(len);
     char *pch;
-    int j, i = 0;
+    int j, i,k = 0;
     int troca_i;
     int lendo = 0;
+    int numbers[6][2];
+
+    for (i = 0; i < MAXNOS; i++)
+    {
+        numbers[i][0] = 0;
+        numbers[i][1] = 0;
+    }
 
     while (getline(&linha, &len, fp) > 0) {
         j = 0;
@@ -53,17 +60,39 @@ void colocarArquivoStruct(FILE * fp, struct ligacoes *ligacao) {
 #ifdef DEBBUG
                         printf("nos[%d][%d] '%s' | ", i, j, ligacao->nos[i][j]);
 #endif
-                        
+
+                        //Achar MAX de 6 nós
                         if (i >= 6)
                         {
                             printf("Limite de 6 nós atingidos\n");
                             exit(1);
+                        }
+                        //Matriz auxiliar para descobrir Maximo de 3 enlaces
+                        if (j == 0)
+                        {
+                            numbers[i][0] = atoi(pch);
                         }
 
                         troca_i++;
                     } else if (lendo = ENLACES) {
 
                     ligacao->enlaces[i][j] = atoi(pch);
+
+                    //Achar + de 3 enlaces
+                    if (j == 0)
+                    {
+                        for (k = 0; k < MAXNOS; k++){
+                        if (numbers[k][0] == ligacao->enlaces[i][0])
+                        {
+                            numbers[k][1] += 1;
+                            if (numbers[k][1] > 3)
+                            {
+                                printf("Nó '%d' tem mais de 3 enlaces!\n", numbers[k][0]);
+                                exit(1);
+                            }
+                        }
+                    }
+                    }
 
 #ifdef DEBBUG
                         printf("enlace[%d][%d] '%d' | ", i, j, ligacao->enlaces[i][j]);
