@@ -52,8 +52,14 @@ void colocarArquivoStruct(FILE * fp, struct ligacoes *ligacao) {
                         strcpy(ligacao->nos[i][j], pch);
 #ifdef DEBBUG
                         printf("nos[%d][%d] '%s' | ", i, j, ligacao->nos[i][j]);
-
 #endif
+                        
+                        if (i >= 6)
+                        {
+                            printf("Limite de 6 nós atingidos\n");
+                            exit(1);
+                        }
+
                         troca_i++;
                     } else if (lendo = ENLACES) {
 
