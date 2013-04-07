@@ -1,6 +1,6 @@
 Redes-II---Projeto-Final
 =========================
 
-Projeto final de redes II
+Projeto Final de Redes II
 
-Implementando a camada de enlace
+-Implementando a camada de enlace e testeenlace

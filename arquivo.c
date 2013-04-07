@@ -64,7 +64,7 @@ void colocarArquivoStruct(FILE * fp, struct ligacoes *ligacao) {
                         //Achar MAX de 6 nós
                         if (i >= 6)
                         {
-                            printf("Limite de 6 nós atingidos\n");
+                            printf("\nLimite de 6 nós atingidos\n");
                             exit(1);
                         }
                         //Matriz auxiliar para descobrir Maximo de 3 enlaces
@@ -87,7 +87,7 @@ void colocarArquivoStruct(FILE * fp, struct ligacoes *ligacao) {
                             numbers[k][1] += 1;
                             if (numbers[k][1] > 3)
                             {
-                                printf("Nó '%d' tem mais de 3 enlaces!\n", numbers[k][0]);
+                                printf("\nNó '%d' possue '%d' enlaces!\n",numbers[k][0],numbers[k][1]);
                                 exit(1);
                             }
                         }
