@@ -20,8 +20,11 @@ void colocarArquivoStruct(FILE * fp, struct ligacoes *ligacao) {
     int numbers[MAXNOS];
     int maxenlaces[MAXNOS];
 
-    for (i = 0; i < MAXNOS; ++i)
+    for (i = 0; i < MAXNOS; ++i){ 
+        numbers[i] = 0;
         maxenlaces[i] = 0;
+    }
+
 
     while (getline(&linha, &len, fp) > 0) {
         j = 0;
@@ -70,24 +73,28 @@ void colocarArquivoStruct(FILE * fp, struct ligacoes *ligacao) {
                         troca_i++;
                     } else if (lendo = ENLACES) {
 
+                    ligacao->enlaces[i][j] = atoi(pch);
+
 /*
                     //Logica para encontrar + de 3 enlaces para cada nó
-                    for (k = 0; k < MAXNOS*3; k++) {
+                    if ( j == 0)
+                    {
+                        for (k = 0; k < MAXNOS*3; ++k) {
 
-                        if (numbers[k] == ligacao->enlaces[i][0])
+                        if (numbers[k] == ligacao->enlaces[i][j])
                         {
                             maxenlaces[k] += 1;
-                            //printf("No '%d' tem '%d' enlaces\n",numbers[k], maxenlaces[k]);
+                            printf("\nNo '%d' tem '%d' enlaces\n",numbers[k], maxenlaces[k]);
                             if (maxenlaces[k] >= 3)
                             {
-                                printf("Numero maximo de enlace do nó '%d' atingido!\n",numbers[k]+1);
+                                printf("\nNumero maximo de enlace do nó '%d' atingido!\n",numbers[k]);
                                 exit(1);
                             }
                         break;
                         }
                     }
+                    }
 */
-                        ligacao->enlaces[i][j] = atoi(pch);
 #ifdef DEBBUG
                         printf("enlace[%d][%d] '%d' | ", i, j, ligacao->enlaces[i][j]);
 #endif
