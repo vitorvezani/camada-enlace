@@ -19,7 +19,7 @@ void *iniciarEnlace() {
     struct ligacoes ligacao;
 
     //Inicializacao das estrutura ligacao
-    for (i = 0; i < MAXNOS*3; ++i)
+    for (i = 0; i < 18; ++i)
         for (j = 0; j < 3; ++j)
             ligacao.enlaces[i][j] = 0;
 
@@ -88,8 +88,7 @@ void *enviarFrames(void *param) {
         pthread_mutex_lock(&mutex_env3);
 
         //Loop no ligacao enlaces
-        for (i = 0; i < MAXNOS*3; ++i) {
-
+        for (i = 0; i < 18; ++i) {
             //Verificar se existe ligacao entre seu nó e o nó destino
             if ((ligacao.enlaces[i][0] == file_info.num_no) && (shm_env.env_no == ligacao.enlaces[i][1])) {
 #ifdef DEBBUG_ENLACE
@@ -100,7 +99,7 @@ void *enviarFrames(void *param) {
                 mtu = ligacao.enlaces[i][2];
 
                 //Loop nos nós para encontrar IP e porta do nó destino
-                for (i = 0; i < MAXNOS; ++i) {
+                for (i = 0; i < 6; ++i) {
                     atoi_result = atoi(ligacao.nos[i][0]);
 
                     //Verificar o IP e Porta do nó destino
@@ -162,7 +161,7 @@ void *enviarFrames(void *param) {
                             printf("Enlace.c = > Dados enviados!\n");
                             flag = 1;
                         }
-                        break;
+
                     }
                 }
             }
@@ -202,7 +201,7 @@ void *receberFrames(void *param) {
     }
 
     //Loop nos nós para achar o IP e Porta de seu nó
-    for (i = 0; i < MAXNOS; ++i) {
+    for (i = 0; i < 6; ++i) {
 
         atoi_result = atoi(ligacao.nos[i][0]);
 
@@ -285,7 +284,12 @@ void montarFrame(struct frame *datagram) {
 
     //Seta algumas variaveis
 
+    datagram->ecc = 0;
+
     datagram->tam_buffer_frame = shm_env.tam_buffer;
+
+    shm_env.env_no = -1;
+    shm_env.erro = 0;
 
     //Monta o datagrama
     memcpy(&datagram->data, &shm_env, sizeof (shm_env));

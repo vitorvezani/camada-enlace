@@ -14,9 +14,10 @@ void colocarArquivoStruct(FILE * fp, struct ligacoes *ligacao) {
     size_t len = 100;
     char *linha = malloc(len);
     char *pch;
-    int j,i,k = 0;
+    int j, i = 0;
     int troca_i;
     int lendo = 0;
+<<<<<<< HEAD
     int numbers[MAXNOS];
     int maxenlaces[MAXNOS];
 
@@ -25,6 +26,8 @@ void colocarArquivoStruct(FILE * fp, struct ligacoes *ligacao) {
         maxenlaces[i] = 0;
     }
 
+=======
+>>>>>>> Limitado no MAX 6 nós
 
     while (getline(&linha, &len, fp) > 0) {
         j = 0;
@@ -56,22 +59,15 @@ void colocarArquivoStruct(FILE * fp, struct ligacoes *ligacao) {
 
                 if (strcmp(pch, "[Nos]") != 0 && strcmp(pch, "[Enlaces]") != 0) {
                     if (lendo == NOS) {
-                        if (i >= 6)
-                        {
-                            printf("Limite de 6 nós atingidos\n");
-                            exit(1);
-                        }
-                        if (j = 0)
-                        {
-                            numbers[i] = atoi(pch);
-                        }
 
                         strcpy(ligacao->nos[i][j], pch);
 #ifdef DEBBUG
                         printf("nos[%d][%d] '%s' | ", i, j, ligacao->nos[i][j]);
+
 #endif
                         troca_i++;
                     } else if (lendo = ENLACES) {
+<<<<<<< HEAD
 
                     ligacao->enlaces[i][j] = atoi(pch);
 
@@ -95,12 +91,15 @@ void colocarArquivoStruct(FILE * fp, struct ligacoes *ligacao) {
                     }
                     }
 */
+=======
+                        ligacao->enlaces[i][j] = atoi(pch);
+>>>>>>> Limitado no MAX 6 nós
 #ifdef DEBBUG
                         printf("enlace[%d][%d] '%d' | ", i, j, ligacao->enlaces[i][j]);
 #endif
                         troca_i++;
                     }
-                    if (troca_i == 3){
+                    if (troca_i == 3) {
                         i++;
 #ifdef DEBBUG
                         printf("\n");

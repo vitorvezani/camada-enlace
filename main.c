@@ -26,10 +26,14 @@ int main(int argc, char const *argv[]) {
 
     //inicializacao do buffer Rede->Enlace(Enviar)
     shm_env.erro = -9;
-    shm_rcv.erro = -9;
+    shm_env.env_no = -1;
     strcpy(shm_env.buffer, "");
-    strcpy(shm_rcv.buffer, "");
     shm_env.tam_buffer = 0;
+
+    //inicializacao do buffer Rede->Enlace(Receber)
+    shm_rcv.erro = -9;
+    shm_rcv.env_no = -1;
+    strcpy(shm_rcv.buffer, "");
     shm_rcv.tam_buffer = 0;
 
     //Inicializar Mutex Enviar

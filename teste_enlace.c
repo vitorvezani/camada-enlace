@@ -108,8 +108,9 @@ void *receberDatagramas() {
         printf("Teste_enlace.c (Receber) = > Type: '%d', Tam_buffer: '%d' Bytes, Buffer: '%s'\n", shm_rcv.type, shm_rcv.tam_buffer,
                 shm_rcv.buffer);
 
-        }
+        shm_rcv.erro = -1;
 
+        }
         //Libera acesso exclusivo
         pthread_mutex_unlock(&mutex_rcv3);
 

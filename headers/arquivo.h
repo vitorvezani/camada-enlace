@@ -10,19 +10,18 @@
 #include <string.h>
 #include <pthread.h>     	/* para poder manipular threads */
 
-#define DEBBUG
+struct ligacoes {
+    char nos[6][3][25];
+    int enlaces[18][3];
+};
+
+//#define DEBBUG
+#define MAXNOS			6
 
 #define TRUE 			1
 #define FALSE 			0
 
-#define MAXNOS			6
-
 #define NOS 			1
 #define ENLACES 		2
-
-struct ligacoes {
-    char nos[MAXNOS][3][25];
-    int enlaces[18][3];
-};
 
 void delete_espace(char* input);
